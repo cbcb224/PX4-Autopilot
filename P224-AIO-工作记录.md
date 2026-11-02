@@ -14,7 +14,7 @@
 3. BMI088 轴为 X 右、Y 前、Z 上；ICM42688P 为 X 前、Y 左、Z 上；IST8310 为 X 前、Y 右、Z 上。已确认 PX4 的 BMI088 与 ICM42688P 驱动在用户旋转前翻转 Y/Z，IST8310 驱动只翻转 Z。因此文档方向如果确认无误，应分别使用 BMI088 `-R 2`（偏航 90°）、ICM42688P `-R 0`、IST8310 `-R 0`；IST8310 的左手轴约定由驱动处理，无需修改公共驱动。
 4. 电池分压倍率：(200+22)/22 = 10.09090909；电流增益：1/(0.001×50) = 20 A/V。仍需实测电流零点偏置。
 5. PA9 悬空并内部上拉只能提供常连接的软件检测，不能区分 USB 插拔；需同时核对 NuttX OTGFS 的 VBUS sensing 配置，避免仅改 PX4 检测但 USB 外设仍等待物理 VBUS。
-6. HRT 计划 TIM5；NuttX 系统 tick 默认 SysTick。文档将 tick 也写 TIM5，若两者是独立计时源不可共同独占 TIM5，待澄清。
+6. 文档将 HRT 和 tick 都写为 TIM5。用户已确认采用 HRT=TIM5、NuttX tick=SysTick，避免资源争用。
 7. 无中断引脚的 IMU 需要使用驱动轮询回退路径；不能复用原板 DRDY GPIO。
 8. 参数要存内部 Flash，必须预留擦除扇区并与链接脚本、bootloader 擦除范围一致，不能只启用宏。
 
@@ -28,7 +28,7 @@
 ## 操作与验证
 
 - 已只读检查 FMUv6C 的板级配置、初始化、SPI/I2C、定时器、USB、NuttX 配置和链接脚本。
-- 尚未修改飞控配置，尚未启动本次定制固件编译。
+- 板级实现、云端工作流已提交，正在进行本次定制固件编译。
 - 已修改云端工作流：构建标识采用 `目标-r运行编号-a尝试编号-提交短哈希`，经 `BUILD_URI` 写入固件（`ver uri` 可读）；每次生成 `BUILD-INFO.md`，包含源码版本、最新提交变更及运行链接，与固件/日志一同上传。增加固件文件存在性检查，避免只有说明文件也误报固件上传成功。
 
 ## 引脚及资源核对表
@@ -83,3 +83,27 @@ v1.17.0 的 `platforms/nuttx/src/px4/stm/stm32_common/dshot/dshot.c` 明确限�
 - USART2 同时保留调试 console；关闭 console 重排后不改变四串口 ttyS 顺序。初版串口中断收发，不占用 DMA1/2。
 - 参数 Flash 使用 PX4 原有 `parameter_flashfs_init`；没有外部 FRAM/EEPROM MTD 或硬件版本 manifest。
 - 未对设备执行烧录或修改硬件。
+
+## 静态验证与云端构建
+
+- 本地只运行 Python 静态核对和 `git diff --check`，未调用 make、CMake、编译器或 Docker。
+- 检查通过：九路输出的引脚/通道/顺序，固件封装与链接/bootloader Flash 范围一致性，NuttX 配置无重复赋值，串口无 DMA/流控，TIM5 不被 NuttX 定时器驱动占用，USB 硬件 VBUS sensing 关闭，文件 LF 及工作流 YAML。
+- 官方 `boards/px4/fmu-v6c` 与 v1.17.0 基线比较无变化。
+- 源码提交：`02fa7a0e6b6f46bf42346edab0ab965621a9b17f`；已推送至 `cbcb224/PX4-Autopilot` 的 `codex/px4-v1.17.0`。
+- 应用首次云端构建：[运行 #2](https://github.com/cbcb224/PX4-Autopilot/actions/runs/41449144086)，目标 `p224_vio-v1_default`。
+- bootloader 首次云端构建：[运行 #3](https://github.com/cbcb224/PX4-Autopilot/actions/runs/41449243774)，目标 `p224_vio-v1_bootloader`。
+- bootloader 首轮 #3 已成功；应用首轮 #2 失败于 NuttX SDMMC1 宏定义：配置默认 legacy pinmap，`GPIO_SDMMC1_*_0` 仅在新版 pinmap 存在。
+- 修正：明确启用 legacy pinmap，SDMMC1 使用该 pinmap 已有的正确默认引脚；静态核对板级所有数字后缀 GPIO 别名均存在于实际启用的 legacy pinmap。
+- 补回启动脚本调用的 `mft` 查询命令（不增加外部存储或版本检测），避免启动时 command not found；`FLASH_BASED_PARAMS` 仍强制参数默认存储为 Flash。
+- 统一固件 ZIP 根目录，将构建说明复制进目标构建目录，与 `.px4/.elf/.bin` 一起上传。
+
+## 产物与首次上板步骤
+
+1. 本次只生成并下载固件，不自动烧录。首次上板需去掉螺旋桨，确认电源和 SWD 接线。
+2. ST-Link/SWD 将 `p224_vio-v1_bootloader.bin` 写到 `0x08000000`，应用 `p224_vio-v1_default.bin` 写到 `0x08020000`。`.px4` 是封装文件，不能当裸二进制直接写入该地址。
+3. 保留参数时不要执行整片擦除，特别不要擦除 `0x081E0000` 的参数扇区。旧板首次使用本布局前需保存原参数，未知旧布局不能直接继承。
+4. 上电检查 USB 枚举（`p224`/`vio-v1`）；本板 PA9 常高，软件不能通过它判断 USB 是否拔出。
+5. 终端检查 `ver all`、`ver uri`、`bmi088 status`、`icm42688p status`、`ist8310 status`、`dps310 status`；平放及各轴转动核对两组 IMU 和磁力计方向，重新校准。
+6. `param save` 后断电重启检查参数持久化；插卡检查日志文件。电压/电流用仪表核准比例与零点。
+7. 在 QGC 选择多旋翼机架并分配输出功能；拆桨核对 M1～M9 实际输出顺序。TIM1 四路需要支持双向 DShot 的 ESC，其余 PWM 输出按用途设频率。
+8. 编译成功只验证源码/链接，USB 电气连接、传感器焊接/轴向、输出波形和飞行行为都需实物验证。
