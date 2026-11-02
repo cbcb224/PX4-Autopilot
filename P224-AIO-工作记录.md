@@ -101,6 +101,7 @@ v1.17.0 的 `platforms/nuttx/src/px4/stm/stm32_common/dshot/dshot.c` 明确限�
 
 - 第二轮基于 `f76222dd`：bootloader [#5](https://github.com/cbcb224/PX4-Autopilot/actions/runs/41450292394) 成功，Flash 42376 B；应用 [#4](https://github.com/cbcb224/PX4-Autopilot/actions/runs/41450212490) 暴露单路电源检测宏名错误，修正 `BOARD_ADC_BRICK1_VALID` 为上游单电源接口要求的 `BOARD_ADC_BRICK_VALID`。
 - 构建说明区分应用的 `ver uri` 与无 shell 的 bootloader，避免误称引导程序可执行该命令。
+- 第三轮：同提交 `35561218` 的 bootloader [#7](https://github.com/cbcb224/PX4-Autopilot/actions/runs/41451176355) 成功；应用 [#6](https://github.com/cbcb224/PX4-Autopilot/actions/runs/41451131914) 继续发现同组单电源 ADC 通道宏仍沿用双路命名。完整核对 `board_common.h` 的单电源分支后，把电压/电流通道一起改为 `ADC_BATTERY_VOLTAGE_CHANNEL` / `ADC_BATTERY_CURRENT_CHANNEL`，通道值仍是 PA4/18、PC4/4。
 
 1. 本次只生成并下载固件，不自动烧录。首次上板需去掉螺旋桨，确认电源和 SWD 接线。
 2. ST-Link/SWD 将 `p224_vio-v1_bootloader.bin` 写到 `0x08000000`，应用 `p224_vio-v1_default.bin` 写到 `0x08020000`。`.px4` 是封装文件，不能当裸二进制直接写入该地址。
