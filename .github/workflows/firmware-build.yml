@@ -1,0 +1,91 @@
+name: Build PX4 Firmware
+run-name: Build ${{ inputs.target }} (${{ github.ref_name }})
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Board target, e.g. px4_fmu-v6x_default (choose your actual board)'
+        required: true
+        type: string
+        default: px4_fmu-v6c_default
+
+permissions:
+  contents: read
+
+concurrency:
+  group: firmware-${{ github.ref }}-${{ inputs.target }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 90
+    # Same image as Tools/ci/generate_board_targets_json.py in v1.17.0.
+    container:
+      image: ghcr.io/px4/px4-dev:v1.16.0-rc1-258-g0369abd556
+    defaults:
+      run:
+        shell: bash
+    env:
+      BUILD_TARGET: ${{ inputs.target }}
+
+    steps:
+      - name: Checkout source and pinned submodules
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Validate board target
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+
+          target = os.environ['BUILD_TARGET']
+          configs = {
+              f'{p.parent.parent.name}_{p.parent.name}_{p.stem}': p
+              for p in Path('boards').glob('*/*/*.px4board')
+          }
+          if target not in configs:
+              raise SystemExit(f'Unknown board target: {target!r}. Check boards/<vendor>/<board>/<variant>.px4board')
+          print(f'Building {target} from {configs[target]}')
+          PY
+
+      - name: Record source version
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          {
+            echo "Target: $BUILD_TARGET"
+            git log -1 --format='Commit: %H%nSubject: %s'
+            git describe --tags --always
+            git submodule status --recursive
+          } | tee "$RUNNER_TEMP/source-version.txt"
+
+      - name: Build firmware
+        run: |
+          set -euo pipefail
+          make "$BUILD_TARGET" 2>&1 | tee "$RUNNER_TEMP/build.log"
+
+      - name: Upload firmware
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-${{ inputs.target }}-${{ github.run_number }}
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            build/${{ inputs.target }}/*.px4
+            build/${{ inputs.target }}/*.elf
+            build/${{ inputs.target }}/*.bin
+
+      - name: Upload build log and source version
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs-${{ github.run_number }}-${{ github.run_attempt }}
+          retention-days: 30
+          path: |
+            ${{ runner.temp }}/build.log
+            ${{ runner.temp }}/source-version.txt
