@@ -99,6 +99,9 @@ v1.17.0 的 `platforms/nuttx/src/px4/stm/stm32_common/dshot/dshot.c` 明确限�
 
 ## 产物与首次上板步骤
 
+- 第二轮基于 `f76222dd`：bootloader [#5](https://github.com/cbcb224/PX4-Autopilot/actions/runs/41450292394) 成功，Flash 42376 B；应用 [#4](https://github.com/cbcb224/PX4-Autopilot/actions/runs/41450212490) 暴露单路电源检测宏名错误，修正 `BOARD_ADC_BRICK1_VALID` 为上游单电源接口要求的 `BOARD_ADC_BRICK_VALID`。
+- 构建说明区分应用的 `ver uri` 与无 shell 的 bootloader，避免误称引导程序可执行该命令。
+
 1. 本次只生成并下载固件，不自动烧录。首次上板需去掉螺旋桨，确认电源和 SWD 接线。
 2. ST-Link/SWD 将 `p224_vio-v1_bootloader.bin` 写到 `0x08000000`，应用 `p224_vio-v1_default.bin` 写到 `0x08020000`。`.px4` 是封装文件，不能当裸二进制直接写入该地址。
 3. 保留参数时不要执行整片擦除，特别不要擦除 `0x081E0000` 的参数扇区。旧板首次使用本布局前需保存原参数，未知旧布局不能直接继承。

@@ -75,7 +75,11 @@ jobs:
             echo '## Latest source change'
             git show --format=fuller --stat HEAD
             echo
-            echo 'Build ID is embedded in the firmware and can be read with `ver uri`.'
+            if [[ "$BUILD_TARGET" == *_bootloader ]]; then
+              echo 'Bootloader build ID is recorded here; the bootloader has no ver command.'
+            else
+              echo 'Build ID is embedded in the firmware and can be read with `ver uri`.'
+            fi
             echo 'Build success does not verify wiring, sensor orientation, or motor outputs on hardware.'
           } > "$RUNNER_TEMP/BUILD-INFO.md"
           cat "$RUNNER_TEMP/BUILD-INFO.md" >> "$GITHUB_STEP_SUMMARY"
