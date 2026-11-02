@@ -43,7 +43,7 @@
 | SPI1 PA5/PA6/PA7 | AF5 合法；CS PA10（陀螺）、PA2（加计），均不配置 DRDY |
 | SPI2 PB13/PB14/PB15 | AF5 合法；CS PD15，不再使用 FMUv6C 的 FRAM 定义 |
 | I2C1 PB8/PB9 | AF4 合法，PB9 必须从原版加热输出改为 SDA；外部总线 |
-| I2C4 PD12/PD13 | AF4 合法；内部总线；IST8310 默认地址 0x0c；DPS310 需探测 0x76/0x77 |
+| I2C4 PD12/PD13 | AF4 合法；内部总线；IST8310 默认地址 0x0e（首次上板修正）；DPS310 需探测 0x76/0x77 |
 | USART2 PD5/PD6 | AF7 合法；只启用指定四串口，关闭 console 重排，确保 ttyS0 |
 | UART4 PD1/PD0 | AF8 合法，ttyS1 |
 | UART7 PA15/PB3 | AF11 合法，ttyS2；占用 JTAG 相关引脚，但保留 PA13/PA14 的 SWD |
@@ -123,3 +123,595 @@ v1.17.0 的 `platforms/nuttx/src/px4/stm/stm32_common/dshot/dshot.c` 明确限�
 6. `param save` 后断电重启检查参数持久化；插卡检查日志文件。电压/电流用仪表核准比例与零点。
 7. 在 QGC 选择多旋翼机架并分配输出功能；拆桨核对 M1～M9 实际输出顺序。TIM1 四路需要支持双向 DShot 的 ESC，其余 PWM 输出按用途设频率。
 8. 编译成功只验证源码/链接，USB 电气连接、传感器焊接/轴向、输出波形和飞行行为都需实物验证。
+
+
+## COM53 首次上板只读诊断（2026-11-02）
+
+USB VID:PID=1209:0001；已收到 PX4 MAVLink 心跳，未解锁，未修改参数或触发输出。以下为命令响应。
+
+```text
+
+### ver all
+
+NuttShell (NSH) NuttX-12.12.0
+nsh> 
+nsh> ver all
+HW arch: P224_VIO_V1
+PX4 git-hash: fa4fc3170ab924b8fe6abc91da56884758b22c71
+PX4 version: Release 0.0.0 (255)
+PX4 git-branch: codex/px4-v1.17.0
+OS: NuttX
+OS version: Release 12.12.0 (202113279)
+OS git-hash: fb2fadf6f599c1406f052db013efd00a2518e72c
+Build datetime: Nov  2 2026 13:22:53
+Build uri: p224_vio-v1_default-r8-a1-fa4fc317
+Build variant: default
+Toolchain: GNU GCC, 13.2.1 20231009
+PX4GUID: 000600000000363335343034510d00470038
+MCU: STM32H7[4|5]xxx, rev. V
+nsh> 
+### ver uri
+ver uri
+Build uri: p224_vio-v1_default-r8-a1-fa4fc317
+nsh> 
+### uptime
+uptime
+nsh: uptime: command not found
+nsh> 
+### commander status
+commander status
+INFO  [commander] Disarmed
+INFO  [commander] navigation mode: Hold
+INFO  [commander] user intended navigation mode: Hold
+INFO  [commander] in failsafe: no
+commander: cycle: 5864 events, 382411us elapsed, 65.21us avg, min 37us max 2412us 74.439us rms
+commander: preflight check: 597 events, 93664us elapsed, 156.89us avg, min 78us max 2369us 149.939us rms
+nsh> 
+### bmi088 status
+bmi088 status
+Usage: bmi088 <command> [arguments...]
+ Commands:
+
+   start
+     [-A]        Accel
+     [-G]        Gyro
+     [-s]        Internal SPI bus(es)
+     [-S]        External SPI bus
+     [-b <val>]  board-specific bus (default=all) (external SPI: n-th bus (default=1))
+     [-c <val>]  chip-select pin (for internal SPI) or index (for external SPI)
+     [-m <val>]  SPI mode
+     [-f <val>]  bus frequency in kHz
+     [-q]        quiet startup (no message if no device found)
+     [-R <val>]  Rotation
+                 default: 0
+
+   stop
+
+   status        print status info
+nsh> 
+### icm42688p status
+icm42688p status
+INFO  [SPI_I2C] Running on SPI Bus 2
+INFO  [icm42688p] FIFO empty interval: 1250 us (800.0 Hz)
+INFO  [icm42688p] Clock input: disabled
+icm42688p: bad register: 0 events
+icm42688p: bad transfer: 0 events
+icm42688p: FIFO empty: 0 events
+icm42688p: FIFO overflow: 0 events
+icm42688p: FIFO reset: 1 events
+nsh> 
+### ist8310 status
+ist8310 status
+INFO  [SPI_I2C] Not running
+nsh> 
+### dps310 status
+dps310 status
+INFO  [SPI_I2C] Running on I2C Bus 4, Address 0x76
+dps310: read: 4677 events, 3062383us elapsed, 654.78us avg, min 402us max 1329us 391.100us rms
+dps310: comm errors: 0 events
+nsh> 
+### sensors status
+sensors status
+selected gyro: 2490386 (1)
+validator: best: 0, prev best: 0, failsafe: NO (0 events)
+sensor #0, prio: 50, state: OK
+	val:  -0.0009, lp:  -0.0009 mean dev:   0.0001 RMS:   0.0047 conf:   1.0000
+	val:   0.0017, lp:   0.0059 mean dev:   0.0000 RMS:   0.0036 conf:   1.0000
+	val:   0.0038, lp:   0.0005 mean dev:   0.0001 RMS:   0.0037 conf:   1.0000
+sensor #1, prio: 50, state: OK
+	val:  -0.0005, lp:  -0.0001 mean dev:   0.0001 RMS:   0.0016 conf:   1.0000
+	val:   0.0008, lp:   0.0010 mean dev:   0.0000 RMS:   0.0035 conf:   1.0000
+	val:   0.0009, lp:   0.0004 mean dev:  -0.0001 RMS:   0.0019 conf:   1.0000
+
+selected accel: 2490386 (1)
+validator: best: 0, prev best: 0, failsafe: NO (0 events)
+sensor #0, prio: 50, state: OK
+	val:  -0.1443, lp:  -0.1411 mean dev:  -0.0005 RMS:   0.0237 conf:   1.0000
+	val:  -0.2181, lp:  -0.2166 mean dev:  -0.0008 RMS:   0.0351 conf:   1.0000
+	val:  -9.7885, lp:  -9.8312 mean dev:  -0.0460 RMS:   0.3336 conf:   1.0000
+sensor #1, prio: 50, state: OK
+	val:  -0.1199, lp:  -0.1200 mean dev:  -0.0003 RMS:   0.0143 conf:   1.0000
+	val:  -0.3008, lp:  -0.2970 mean dev:  -0.0008 RMS:   0.0285 conf:   1.0000
+	val:  -9.5268, lp:  -9.5248 mean dev:  -0.0323 RMS:   0.2840 conf:   1.0000
+
+validator: best: -1, prev best: -1, failsafe: NO (0 events)
+
+[vehicle_air_data] selected BARO: 6845985 (0)
+validator: best: 0, prev best: 0, failsafe: NO (0 events)
+sensor #0, prio: 50, state: OK
+	val: 102954.0703, lp: 102957.8828 mean dev: -32.2119 RMS:  78.3588 conf:   1.0000
+	val:  64.5542, lp:  64.4842 mean dev:  -3.1105 RMS:   7.6728 conf:   1.0000
+	val: -134.7530, lp: -135.0614 mean dev:   2.6359 RMS:   6.4295 conf:   1.0000
+BARO 6845985 EN: 1, offset: 0.000, Internal
+
+Airspeed status:
+	no data
+
+[vehicle_acceleration] selected sensor: 2490386, rate: 799.5 Hz, estimated bias: [0.0035 0.0082 0.2838]
+ACC 2490386 EN: 1, offset: [0.000 0.014 -0.346], scale: [1.000 1.000 1.000], Internal
+
+[vehicle_angular_velocity] selected sensor: 2490386, rate: 8043.6 Hz FIFO, estimated bias: [-0.00008 0.00098 0.00033]
+GYRO 2490386 EN: 1, offset: [0.035 0.004 -0.015], Internal
+vehicle_angular_velocity: gyro filter: 60044 events, 926161us elapsed, 15.42us avg, min 9us max 203us 1.235us rms
+vehicle_angular_velocity: gyro filter reset: 3 events
+vehicle_angular_velocity: gyro selection changed: 3 events
+
+[vehicle_gps_position] selected GPS: 0
+
+
+[vehicle_imu] 0 - Accel: 6946826, interval: 1250.0 us (SD 97.1 us), Gyro: 6684682, interval: 1500.0 us (SD 127.6 us)
+vehicle_imu: accel data gap: 1 events
+vehicle_imu: gyro data gap: 1 events
+ACC 6946826 EN: 1, offset: [-0.003 0.014 0.054], scale: [1.000 1.000 1.000], Internal
+GYRO 6684682 EN: 1, offset: [0.003 -0.002 -0.002], Internal
+
+[vehicle_imu] 1 - Accel: 2490386, interval: 1250.0 us (SD 30.9 us), Gyro: 2490386, interval: 1250.0 us (SD 30.9 us)
+vehicle_imu: accel data gap: 1 events
+vehicle_imu: gyro data gap: 1 events
+ACC 2490386 EN: 1, offset: [0.000 0.014 -0.346], scale: [1.000 1.000 1.000], Internal
+GYRO 2490386 EN: 1, offset: [0.035 0.004 -0.015], Internal
+nsh> 
+### ls /fs/microsd
+ls /fs/microsd
+/fs/microsd:
+ param_import_fail.txt
+ dataman
+ log/
+ ufw/
+ parameters_backup.bson
+ uavcan.db/
+ mavlink/
+ params
+nsh> 
+### dmesg
+dmesg
+ut
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+ERROR [board_adc] sample timeout
+Ensh> 
+```
+
+```text
+
+### bmi088 -A status
+
+NuttShell (NSH) NuttX-12.12.0
+nsh> bmi088 -A status
+INFO  [SPI_I2C] Running on SPI Bus 1
+INFO  [bmi088] FIFO empty interval: 1250 us (800.0 Hz)
+bmi088_accel: bad register: 0 events
+bmi088_accel: bad transfer: 0 events
+bmi088_accel: FIFO empty: 0 events
+bmi088_accel: FIFO overflow: 0 events
+bmi088_accel: FIFO reset: 1 events
+nsh> 
+### bmi088 -G status
+bmi088 -G status
+INFO  [SPI_I2C] Running on SPI Bus 1
+INFO  [bmi088] FIFO empty interval: 1500 us (666.7 Hz)
+bmi088_gyro: bad register: 0 events
+bmi088_gyro: bad transfer: 0 events
+bmi088_gyro: FIFO empty: 0 events
+bmi088_gyro: FIFO overflow: 0 events
+bmi088_gyro: FIFO reset: 1 events
+nsh> 
+### board_adc status
+board_adc status
+INFO  [board_adc] running
+nsh> 
+### listener adc_report -n 1
+listener adc_report -n 1
+
+TOPIC: adc_report
+ adc_report
+    timestamp: 113587794 (0.001948 seconds ago)
+    device_id: 4294967295 (Type: 0xFF, UNKNOWN:31 (0xFF))
+    raw_data: [0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    resolution: 65536
+    v_ref: 3.30000
+    channel_id: [4, 18, 20, -1, -1, -1, -1, -1, -1, -1, -1, -1]
+
+nsh> 
+### listener sensor_mag -n 1
+listener sensor_mag -n 1
+never published
+nsh> 
+### param show SYS_AUTOSTART
+param show SYS_AUTOSTART
+Symbols: x = used, + = saved, * = unsaved
+x + SYS_AUTOSTART [883,1245] : 4001
+
+ 920/1537 parameters used.
+nsh> 
+### param show CAL_MAG*
+param show CAL_MAG*
+Symbols: x = used, + = saved, * = unsaved
+x + CAL_MAG0_ID [56,122] : 396833
+x   CAL_MAG0_PITCH [57,123] : 0.0000
+x + CAL_MAG0_PRIO [58,124] : 50
+x   CAL_MAG0_ROLL [59,125] : 0.0000
+x   CAL_MAG0_ROT [60,126] : -1
+x   CAL_MAG0_XCOMP [61,127] : 0.0000
+x   CAL_MAG0_XODIAG [62,128] : 0.0000
+x   CAL_MAG0_XOFF [63,129] : -0.1947
+x   CAL_MAG0_XSCALE [64,130] : 1.0000
+x   CAL_MAG0_YAW [65,131] : 0.0000
+x   CAL_MAG0_YCOMP [66,132] : 0.0000
+x   CAL_MAG0_YODIAG [67,133] : 0.0000
+x   CAL_MAG0_YOFF [68,134] : -0.1922
+x   CAL_MAG0_YSCALE [69,135] : 1.0000
+x   CAL_MAG0_ZCOMP [70,136] : 0.0000
+x   CAL_MAG0_ZODIAG [71,137] : 0.0000
+x   CAL_MAG0_ZOFF [72,138] : -0.1665
+x   CAL_MAG0_ZSCALE [73,139] : 1.0000
+x   CAL_MAG1_ID [74,140] : 0
+x   CAL_MAG1_ROT [75,144] : -1
+x   CAL_MAG2_ID [76,158] : 0
+x   CAL_MAG2_ROT [77,162] : -1
+x   CAL_MAG3_ID [78,176] : 0
+x   CAL_MAG3_ROT [79,180] : -1
+x   CAL_MAG_COMP_TYP [80,194] : 0
+x   CAL_MAG_SIDES [81,195] : 63
+
+ 920/1537 parameters used.
+nsh> 
+### cat /fs/microsd/param_import_fail.txt
+cat /fs/microsd/param_import_fail.txt
+HW arch: MICOAIR_H743_AIO
+PX4 git-hash: 54f0455ffcd755534539a7cf33a09a20bf71d29d
+PX4 version: Release 1.16.2 (17826559)
+OS: NuttX
+OS version: Release 12.12.0 (202113279)
+OS git-hash: 886acbbdb4f061e5c0ce1a76afbcfa7cb7df9849
+Build datetime: Oct 30 2026 19:50:27
+Build uri: localhost
+Build variant: default
+Toolchain: GNU GCC, 13.2.1 20231009
+PX4GUID: 000600000000363335343034510d00470038
+MCU: STM32H7[4|5]xxx, rev. V
+New /fs/mtd_caldata size is:
+ERROR [param] importing failed (-1)
+ERROR [init] param import failed
+INFO  [parameters] summary: 0/1825 (used/total)
+INFO  [parameters] storage array: 0/1825 elements (256 bytes total)
+INFO  [parameters] storage array (custom defaults): 0/1825 elements (256 bytes total)
+INFO  [parameters] auto save: on
+param: export: 0 events, 0us elapsed, 0.00us avg, min 0us max 0us 0.000us rms
+param: find: 0 events
+param: get: 0 events
+param: set: 0 events, 0us elapsed, 0.00us avg, min 0us max 0us 0.000us rms
+dmesg [30:100]
+INFO  [param] selected parameter backup file /fs/microsd/parameters_backup.bson
+Board architecture defaults: /etc/init.d/rc.board_arch_defaults
+Board defaults: /etc/init.d/rc.board_defaults
+Loading airframe: /etc/init.d/airframes/4001_quad_x
+HW arch: P224_P224_AIO_V1
+PX4 git-hash: 527dfc114fc21b18c988a7c520534fb25e5470c0
+PX4 version: 1.16.2 0 (17826304)
+PX4 git-branch: codex/px4-1.16.2-custom
+OS: NuttX
+OS version: Release 12.12.0 (202113279)
+OS git-hash: 886acbbdb4f061e5c0ce1a76afbcfa7cb7df9849
+Build datetime: Nov  2 2026 04:06:17
+Build uri: localhost
+Build variant: default
+Toolchain: GNU GCC, 9.3.1 20200408 (release)
+PX4GUID: 000600000000363335343034510d00470038
+MCU: STM32H7[4|5]xxx, rev. V
+New /fs/mtd_caldata size is:
+ERROR [param] importing failed (-1)
+ERROR [init] param import failed
+[init] importing from parameter backup
+INFO  [param] importing from '/fs/microsd/parameters_backup.bson'
+INFO  [parameters] BSON document size 5 bytes, decoded 5 bytes (INT32:0, FLOAT:0)
+INFO  [parameters] summary: 0/1823 (used/total)
+INFO  [parameters] storage array: 0/1823 elements (256 bytes total)
+INFO  [parameters] storage array (custom defaults): 0/1823 elements (256 bytes total)
+INFO  [parameters] auto save: on
+param: export: 0 events, 0us elapsed, 0.00us avg, min 0us max 0us 0.000us rms
+param: find: 0 events
+param: get: 0 events
+param: set: 0 events, 0us elapsed, 0.00us avg, min 0us max 0us 0.000us rms
+dmesg [31:100]
+INFO  [param] selected parameter backup file /fs/microsd/parameters_backup.bson
+Board architecture defaults: /etc/init.d/rc.board_arch_defaults
+Board defaults: /etc/init.d/rc.board_defaults
+Loading airframe: /etc/init.d/airframes/4001_quad_x
+HW arch: P224_P224_AIO_V1
+PX4 git-hash: 527dfc114fc21b18c988a7c520534fb25e5470c0
+PX4 version: 1.16.2 0 (17826304)
+PX4 git-branch: codex/px4-1.16.2-custom
+OS: NuttX
+OS version: Release 12.12.0 (202113279)
+OS git-hash: 886acbbdb4f061e5c0ce1a76afbcfa7cb7df9849
+Build datetime: Nov  2 2026 04:06:17
+Build uri: localhost
+Build variant: default
+Toolchain: GNU GCC, 9.3.1 20200408 (release)
+PX4GUID: 000600000000363335343034510d00470038
+MCU: STM32H7[4|5]xxx, rev. V
+New /fs/mtd_caldata size is:
+ERROR [param] importing failed (-1)
+ERROR [init] param import failed
+[init] importing from parameter backup
+INFO  [param] importing from '/fs/microsd/parameters_backup.bson'
+INFO  [parameters] BSON document size 5 bytes, decoded 5 bytes (INT32:0, FLOAT:0)
+INFO  [parameters] summary: 0/1823 (used/total)
+INFO  [parameters] storage array: 0/1823 elements (256 bytes total)
+INFO  [parameters] storage array (custom defaults): 0/1823 elements (256 bytes total)
+INFO  [parameters] auto save: on
+param: export: 0 events, 0us elapsed, 0.00us avg, min 0us max 0us 0.000us rms
+param: find: 0 events
+param: get: 0 events
+param: set: 0 events, 0us elapsed, 0.00us avg, min 0us max 0us 0.000us rms
+dmesg [31:100]
+INFO  [param] selected parameter backup file /fs/microsd/parameters_backup.bson
+Board architecture defaults: /etc/init.d/rc.board_arch_defaults
+Board defaults: /etc/init.d/rc.board_defaults
+HW arch: P224_VIO_V10
+PX4 git-hash: d6f12ad1c4f70ad3230afd7d86e971421e02fef4
+PX4 vnsh: cat: read failed: Invalid argument
+nsh> 
+### param status
+param status
+INFO  [parameters] summary: 920/1537 (used/total)
+INFO  [parameters] storage array: 30/1537 elements (256 bytes total)
+INFO  [parameters] storage array (custom defaults): 24/1537 elements (256 bytes total)
+INFO  [parameters] auto save: on
+INFO  [parameters] last auto save: 120.746 seconds ago
+param: export: 1 events, 218us elapsed, 218.00us avg, min 218us max 218us   nanus rms
+param: find: 16037 events
+param: get: 748238 events
+param: set: 30 events, 247us elapsed, 8.23us avg, min 6us max 11us 1.382us rms
+nsh> 
+### logger status
+logger status
+INFO  [logger] Running in mode: all
+INFO  [logger] Number of subscriptions: 178 (5696 bytes)
+INFO  [logger] Not logging
+nsh> 
+```
+
+临时使用上游正确默认地址 0x0e 探测并启动磁力计；不修改持久参数，重启后仍需修正固件启动脚本。
+
+```text
+
+### ist8310 -I -b 4 -a 0x0e -R 0 start
+
+NuttShell (NSH) NuttX-12.12.0
+nsh> ist8310 -I -b 4 -a 0x0e -R 0 start
+ist8310 #0 on I2C bus 4 address 0xE
+nsh> 
+### ist8310 status
+ist8310 status
+INFO  [SPI_I2C] Running on I2C Bus 4, Address 0x0E
+ist8310: reset: 1 events
+ist8310: bad register: 0 events
+ist8310: bad transfer: 0 events
+nsh> 
+### listener sensor_mag -n 1
+listener sensor_mag -n 1
+
+TOPIC: sensor_mag
+ sensor_mag
+    timestamp: 176857428 (0.004072 seconds ago)
+    timestamp_sample: 176856480 (948 us before timestamp)
+    device_id: 396833 (Type: 0x06, I2C:4 (0x0E))
+    x: -0.00909
+    y: -0.52651
+    z: 0.18863
+    temperature: nan
+    error_count: 0
+nsh> 
+### listener sensor_baro -n 1
+listener sensor_baro -n 1
+
+TOPIC: sensor_baro
+ sensor_baro
+    timestamp: 178666033 (0.005179 seconds ago)
+    timestamp_sample: 178665176 (857 us before timestamp)
+    device_id: 6845985 (Type: 0x68, I2C:4 (0x76))
+    pressure: 102940.16406
+    temperature: 65.33628
+    error_count: 0
+nsh> 
+### listener battery_status -n 1
+listener battery_status -n 1
+
+TOPIC: battery_status
+ battery_status
+    timestamp: 180477959 (0.002603 seconds ago)
+    voltage_v: 0.00000
+    current_a: 0.12789
+    current_average_a: 15.00000
+    discharged_mah: 1.42326
+    remaining: -1.00000
+    scale: 1.00000
+    time_remaining_s: nan
+    temperature: nan
+    voltage_cell_v: [0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000, 0.00000]
+    max_cell_voltage_delta: 0.00000
+    full_charge_capacity_wh: 0.00000
+    remaining_capacity_wh: 0.00000
+    nominal_voltage: 0.00000
+    internal_resistance_estimate: 0.00500
+    ocv_estimate: 0.00000
+    ocv_estimate_filtered: 0.00000
+    volt_based_soc_estimate: -1.00000
+    voltage_prediction: 0.00000
+    prediction_error: 0.00000
+    estimation_covariance_norm: 0.00000
+    capacity: 0
+    cycle_count: 0
+    average_time_to_empty: 0
+    manufacture_date: 0
+    state_of_health: 0
+    max_error: 0
+    interface_error: 0
+    faults: 0
+    over_discharge_count: 0
+    connected: False
+    cell_count: 0
+    source: 0
+    priority: 0
+    id: 1
+    is_powering_off: False
+    is_required: False
+    warning: 0
+
+nsh> 
+```
+
+## 首次上板结论与修正
+
+- COM53 识别为 VID:PID 1209:0001，实际运行 commit fa4fc317，与 #8 构建标识一致；MCU silicon revision V。设备未解锁，CPU 负载约 38%。
+- BMI088 加计/陀螺均在 SPI1，ICM42688P 在 SPI2，bad register/transfer/overflow 均为 0；两组加计/陀螺 validator 均 OK。静止读数不能验证全部轴向，仍需手动转动实测。
+- DPS310 在 I2C4/0x76，通信错误 0；温度约 65°C，此为芯片自报值，需结合实际板温与安装位置进一步确认，不能当环境温度。
+- SDMMC1 已挂载且可读文件；logger 已运行，当前未记录（未解锁）。卡上的 param_import_fail.txt 包含旧 MICOAIR/P224 固件记录，不能认作本次启动失败；本次 param status 显示自动保存开启且已有一次 export，但未断电验证。
+- IST8310 起初未运行，原因是启动脚本误写 0x0c。上游驱动默认地址为 0x0e；临时执行 `ist8310 -I -b 4 -a 0x0e -R 0 start` 后启动成功、sensor_mag 发布、错误为 0。已修正源码启动地址；该临时启动不修改参数，重启前有效。
+- ADC 报告中通道 4/18 能返回 0，内部温度通道 20 返回 -1，日志持续 sample timeout。上游 H7 ADC 驱动无条件添加 ADC3 内部温度采样，RCC 仅在 CONFIG_STM32H7_ADC3=y 时开启时钟；当前自定义配置漏开 ADC3。已补回 ADC3，不增加外部 ADC3 引脚。
+- 电池电压显示 0、未连接；尚未确认是否接主电源，不能据此判断电压采样硬件正常或故障。未进行电机、PWM、DShot、串口外设和断电参数保持测试。
+- ver all 显示 Release 0.0.0，但 hash 确认源码来自本次构建；原因为 fork 云端缺少版本 tag，准备同步本地已有官方 v1.17.0 tag，使后续构建版本号正确。
+- 为上述确定的固件问题生成新版应用；不自动烧录、不重启设备、不修改用户参数。配套 bootloader 逻辑和地址不变，继续使用已验证 #9。
