@@ -99,6 +99,18 @@ v1.17.0 的 `platforms/nuttx/src/px4/stm/stm32_common/dshot/dshot.c` 明确限�
 
 ## 产物与首次上板步骤
 
+### 最终构建与下载核验（2026-11-02）
+
+- 构建源码：`fa4fc3170ab924b8fe6abc91da56884758b22c71`，基于 PX4 v1.17.0；随后仅更新本记录，不改变固件源码。
+- 应用 [Actions #8：成功](https://github.com/cbcb224/PX4-Autopilot/actions/runs/41451943797)，目标 `p224_vio-v1_default`，Flash 1482896 B / 1792 KB（80.81%）。唯一构建标识 `p224_vio-v1_default-r8-a1-fa4fc317` 已在下载的裸二进制中检出。
+- 引导程序 [Actions #9：成功](https://github.com/cbcb224/PX4-Autopilot/actions/runs/41451992973)，目标 `p224_vio-v1_bootloader`，二进制 42376 B / 128 KB；构建标识在随包 BUILD-INFO.md 中记录。
+- 最终文件位于工程目录 `P224-VIO-v1-固件/application/` 和 `P224-VIO-v1-固件/bootloader-final/`，各含 `.bin`、`.elf`、`.px4` 和云端 BUILD-INFO.md。较早下载的 `bootloader/` 与 `p224-bootloader-f76222dd.zip` 仅为历史产物，首次上板使用 `bootloader-final/`。
+- ZIP SHA256 与 GitHub artifact digest 一致：应用 `e5d982aff7ea7da5e0409ec1218c6d4acac4b1a9f8e3184b89c0116271bdd412`；引导 `93253094dd7ed4ccf93dccc817f7eb47ca725fa02a1950c7fc910a4e05370756`。
+- 裸二进制 SHA256：应用 `a2d2546c1a9d67883e403da44e09ef23d9f87350415eb02b6098acacf0b6e9d6`；引导 `9e937b212393895a071c9f8e1b35547221f3a6778082b0cbb07962b8ef599553`。
+- 下载后验证通过：两包 board_id=60000，解压 `.px4` image 与 `.bin` 一致，应用/引导 reset vector 分别落入 `0x08020000` / `0x08000000` 对应镜像范围，BUILD-INFO 源码提交相符。
+- 编译日志没有编译/链接错误；有上游 Kconfig 的 ARCH_CHIP_UNSET 被实际板型覆盖提示及 Actions Node 弃用提示。构建成功不代替实物验收。
+- 全程未在本机编译，也未烧录设备。源码和本记录已推送；下载的二进制保留本地，不提交到源码仓库。
+
 - 第二轮基于 `f76222dd`：bootloader [#5](https://github.com/cbcb224/PX4-Autopilot/actions/runs/41450292394) 成功，Flash 42376 B；应用 [#4](https://github.com/cbcb224/PX4-Autopilot/actions/runs/41450212490) 暴露单路电源检测宏名错误，修正 `BOARD_ADC_BRICK1_VALID` 为上游单电源接口要求的 `BOARD_ADC_BRICK_VALID`。
 - 构建说明区分应用的 `ver uri` 与无 shell 的 bootloader，避免误称引导程序可执行该命令。
 - 第三轮：同提交 `35561218` 的 bootloader [#7](https://github.com/cbcb224/PX4-Autopilot/actions/runs/41451176355) 成功；应用 [#6](https://github.com/cbcb224/PX4-Autopilot/actions/runs/41451131914) 继续发现同组单电源 ADC 通道宏仍沿用双路命名。完整核对 `board_common.h` 的单电源分支后，把电压/电流通道一起改为 `ADC_BATTERY_VOLTAGE_CHANNEL` / `ADC_BATTERY_CURRENT_CHANNEL`，通道值仍是 PA4/18、PC4/4。
