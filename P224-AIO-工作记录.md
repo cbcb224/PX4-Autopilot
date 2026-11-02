@@ -134,7 +134,7 @@ USB VID:PID=1209:0001；已收到 PX4 MAVLink 心跳，未解锁，未修改参�
 ### ver all
 
 NuttShell (NSH) NuttX-12.12.0
-nsh> 
+nsh>
 nsh> ver all
 HW arch: P224_VIO_V1
 PX4 git-hash: fa4fc3170ab924b8fe6abc91da56884758b22c71
@@ -149,15 +149,15 @@ Build variant: default
 Toolchain: GNU GCC, 13.2.1 20231009
 PX4GUID: 000600000000363335343034510d00470038
 MCU: STM32H7[4|5]xxx, rev. V
-nsh> 
+nsh>
 ### ver uri
 ver uri
 Build uri: p224_vio-v1_default-r8-a1-fa4fc317
-nsh> 
+nsh>
 ### uptime
 uptime
 nsh: uptime: command not found
-nsh> 
+nsh>
 ### commander status
 commander status
 INFO  [commander] Disarmed
@@ -166,7 +166,7 @@ INFO  [commander] user intended navigation mode: Hold
 INFO  [commander] in failsafe: no
 commander: cycle: 5864 events, 382411us elapsed, 65.21us avg, min 37us max 2412us 74.439us rms
 commander: preflight check: 597 events, 93664us elapsed, 156.89us avg, min 78us max 2369us 149.939us rms
-nsh> 
+nsh>
 ### bmi088 status
 bmi088 status
 Usage: bmi088 <command> [arguments...]
@@ -188,7 +188,7 @@ Usage: bmi088 <command> [arguments...]
    stop
 
    status        print status info
-nsh> 
+nsh>
 ### icm42688p status
 icm42688p status
 INFO  [SPI_I2C] Running on SPI Bus 2
@@ -199,17 +199,17 @@ icm42688p: bad transfer: 0 events
 icm42688p: FIFO empty: 0 events
 icm42688p: FIFO overflow: 0 events
 icm42688p: FIFO reset: 1 events
-nsh> 
+nsh>
 ### ist8310 status
 ist8310 status
 INFO  [SPI_I2C] Not running
-nsh> 
+nsh>
 ### dps310 status
 dps310 status
 INFO  [SPI_I2C] Running on I2C Bus 4, Address 0x76
 dps310: read: 4677 events, 3062383us elapsed, 654.78us avg, min 402us max 1329us 391.100us rms
 dps310: comm errors: 0 events
-nsh> 
+nsh>
 ### sensors status
 sensors status
 selected gyro: 2490386 (1)
@@ -270,7 +270,7 @@ vehicle_imu: accel data gap: 1 events
 vehicle_imu: gyro data gap: 1 events
 ACC 2490386 EN: 1, offset: [0.000 0.014 -0.346], scale: [1.000 1.000 1.000], Internal
 GYRO 2490386 EN: 1, offset: [0.035 0.004 -0.015], Internal
-nsh> 
+nsh>
 ### ls /fs/microsd
 ls /fs/microsd
 /fs/microsd:
@@ -282,135 +282,13 @@ ls /fs/microsd
  uavcan.db/
  mavlink/
  params
-nsh> 
+nsh>
 ### dmesg
 dmesg
 ut
 ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-ERROR [board_adc] sample timeout
-Ensh> 
+[上述同一错误连续重复 124 行，合并显示]
+Ensh>
 ```
 
 ```text
@@ -426,7 +304,7 @@ bmi088_accel: bad transfer: 0 events
 bmi088_accel: FIFO empty: 0 events
 bmi088_accel: FIFO overflow: 0 events
 bmi088_accel: FIFO reset: 1 events
-nsh> 
+nsh>
 ### bmi088 -G status
 bmi088 -G status
 INFO  [SPI_I2C] Running on SPI Bus 1
@@ -436,11 +314,11 @@ bmi088_gyro: bad transfer: 0 events
 bmi088_gyro: FIFO empty: 0 events
 bmi088_gyro: FIFO overflow: 0 events
 bmi088_gyro: FIFO reset: 1 events
-nsh> 
+nsh>
 ### board_adc status
 board_adc status
 INFO  [board_adc] running
-nsh> 
+nsh>
 ### listener adc_report -n 1
 listener adc_report -n 1
 
@@ -453,18 +331,18 @@ TOPIC: adc_report
     v_ref: 3.30000
     channel_id: [4, 18, 20, -1, -1, -1, -1, -1, -1, -1, -1, -1]
 
-nsh> 
+nsh>
 ### listener sensor_mag -n 1
 listener sensor_mag -n 1
 never published
-nsh> 
+nsh>
 ### param show SYS_AUTOSTART
 param show SYS_AUTOSTART
 Symbols: x = used, + = saved, * = unsaved
 x + SYS_AUTOSTART [883,1245] : 4001
 
  920/1537 parameters used.
-nsh> 
+nsh>
 ### param show CAL_MAG*
 param show CAL_MAG*
 Symbols: x = used, + = saved, * = unsaved
@@ -496,7 +374,7 @@ x   CAL_MAG_COMP_TYP [80,194] : 0
 x   CAL_MAG_SIDES [81,195] : 63
 
  920/1537 parameters used.
-nsh> 
+nsh>
 ### cat /fs/microsd/param_import_fail.txt
 cat /fs/microsd/param_import_fail.txt
 HW arch: MICOAIR_H743_AIO
@@ -593,7 +471,7 @@ Board defaults: /etc/init.d/rc.board_defaults
 HW arch: P224_VIO_V10
 PX4 git-hash: d6f12ad1c4f70ad3230afd7d86e971421e02fef4
 PX4 vnsh: cat: read failed: Invalid argument
-nsh> 
+nsh>
 ### param status
 param status
 INFO  [parameters] summary: 920/1537 (used/total)
@@ -605,13 +483,13 @@ param: export: 1 events, 218us elapsed, 218.00us avg, min 218us max 218us   nanu
 param: find: 16037 events
 param: get: 748238 events
 param: set: 30 events, 247us elapsed, 8.23us avg, min 6us max 11us 1.382us rms
-nsh> 
+nsh>
 ### logger status
 logger status
 INFO  [logger] Running in mode: all
 INFO  [logger] Number of subscriptions: 178 (5696 bytes)
 INFO  [logger] Not logging
-nsh> 
+nsh>
 ```
 
 临时使用上游正确默认地址 0x0e 探测并启动磁力计；不修改持久参数，重启后仍需修正固件启动脚本。
@@ -623,14 +501,14 @@ nsh>
 NuttShell (NSH) NuttX-12.12.0
 nsh> ist8310 -I -b 4 -a 0x0e -R 0 start
 ist8310 #0 on I2C bus 4 address 0xE
-nsh> 
+nsh>
 ### ist8310 status
 ist8310 status
 INFO  [SPI_I2C] Running on I2C Bus 4, Address 0x0E
 ist8310: reset: 1 events
 ist8310: bad register: 0 events
 ist8310: bad transfer: 0 events
-nsh> 
+nsh>
 ### listener sensor_mag -n 1
 listener sensor_mag -n 1
 
@@ -644,7 +522,7 @@ TOPIC: sensor_mag
     z: 0.18863
     temperature: nan
     error_count: 0
-nsh> 
+nsh>
 ### listener sensor_baro -n 1
 listener sensor_baro -n 1
 
@@ -656,7 +534,7 @@ TOPIC: sensor_baro
     pressure: 102940.16406
     temperature: 65.33628
     error_count: 0
-nsh> 
+nsh>
 ### listener battery_status -n 1
 listener battery_status -n 1
 
@@ -701,7 +579,7 @@ TOPIC: battery_status
     is_required: False
     warning: 0
 
-nsh> 
+nsh>
 ```
 
 ## 首次上板结论与修正
@@ -712,6 +590,15 @@ nsh>
 - SDMMC1 已挂载且可读文件；logger 已运行，当前未记录（未解锁）。卡上的 param_import_fail.txt 包含旧 MICOAIR/P224 固件记录，不能认作本次启动失败；本次 param status 显示自动保存开启且已有一次 export，但未断电验证。
 - IST8310 起初未运行，原因是启动脚本误写 0x0c。上游驱动默认地址为 0x0e；临时执行 `ist8310 -I -b 4 -a 0x0e -R 0 start` 后启动成功、sensor_mag 发布、错误为 0。已修正源码启动地址；该临时启动不修改参数，重启前有效。
 - ADC 报告中通道 4/18 能返回 0，内部温度通道 20 返回 -1，日志持续 sample timeout。上游 H7 ADC 驱动无条件添加 ADC3 内部温度采样，RCC 仅在 CONFIG_STM32H7_ADC3=y 时开启时钟；当前自定义配置漏开 ADC3。已补回 ADC3，不增加外部 ADC3 引脚。
-- 电池电压显示 0、未连接；尚未确认是否接主电源，不能据此判断电压采样硬件正常或故障。未进行电机、PWM、DShot、串口外设和断电参数保持测试。
+- 电池电压显示 0、未连接；用户随后确认只接 USB，电池未连接与当前供电情况相符；仍不能据此验收主电池采样硬件。未进行电机、PWM、DShot、串口外设和断电参数保持测试。
 - ver all 显示 Release 0.0.0，但 hash 确认源码来自本次构建；原因为 fork 云端缺少版本 tag，准备同步本地已有官方 v1.17.0 tag，使后续构建版本号正确。
 - 为上述确定的固件问题生成新版应用；不自动烧录、不重启设备、不修改用户参数。配套 bootloader 逻辑和地址不变，继续使用已验证 #9。
+
+### COM53 诊断修正版交付
+
+- 用户确认本次仅 USB 供电。
+- 修正版应用 [Actions #10 成功](https://github.com/cbcb224/PX4-Autopilot/actions/runs/41458476853)，源码 `af0c6eb375d332ce1efe7328b67417e26ec926ee`，版本 tag `v1.17.0-9-gaf0c6eb375`，构建标识 `p224_vio-v1_default-r10-a1-af0c6eb3`。
+- 本地目录 `P224-VIO-v1-固件/application-r10/`，应用裸二进制 1482920 B，继续写入 `0x08020000`。bootloader 不需更新，继续使用 #9；不要整片擦除参数区。
+- ZIP SHA256 `44d6805d3c0f3d3b37b78e47e35044e760e1a7b76fe2ff38eea44666ab48b845` 与 GitHub digest 一致；BIN SHA256 `802c0d35f977aaaae8582d3b4e6d21132208a49c594ec7a2c8054fbac190e0a9`。
+- 校验通过：board_id=60000，px4 image 与 bin 一致，镜像内构建标识和 v1.17.0 版本 tag 正确，reset vector 为 0x08020305。
+- 仍未自动烧录；新版需要用户更新应用后再检查磁力计自动启动和 ADC 内部温度采样。没有对电机/输出、参数值、机架配置执行更改。为诊断临时启动了 IST8310，其他状态读取命令均为只读。
