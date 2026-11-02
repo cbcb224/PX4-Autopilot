@@ -8,7 +8,7 @@ on:
         description: 'Board target, e.g. px4_fmu-v6x_default (choose your actual board)'
         required: true
         type: string
-        default: px4_fmu-v6c_default
+        default: p224_vio-v1_default
 
 permissions:
   contents: read
@@ -57,17 +57,39 @@ jobs:
       - name: Record source version
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          build_id="${BUILD_TARGET}-r${GITHUB_RUN_NUMBER}-a${GITHUB_RUN_ATTEMPT}-${GITHUB_SHA:0:8}"
+          echo "BUILD_URI=$build_id" >> "$GITHUB_ENV"
           {
+            echo "Build ID: $build_id"
+            echo "Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/attempts/$GITHUB_RUN_ATTEMPT"
             echo "Target: $BUILD_TARGET"
             git log -1 --format='Commit: %H%nSubject: %s'
             git describe --tags --always
             git submodule status --recursive
           } | tee "$RUNNER_TEMP/source-version.txt"
+          {
+            echo '# Firmware build record'
+            echo
+            cat "$RUNNER_TEMP/source-version.txt"
+            echo
+            echo '## Latest source change'
+            git show --format=fuller --stat HEAD
+            echo
+            echo 'Build ID is embedded in the firmware and can be read with `ver uri`.'
+            echo 'Build success does not verify wiring, sensor orientation, or motor outputs on hardware.'
+          } > "$RUNNER_TEMP/BUILD-INFO.md"
+          cat "$RUNNER_TEMP/BUILD-INFO.md" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Build firmware
         run: |
           set -euo pipefail
           make "$BUILD_TARGET" 2>&1 | tee "$RUNNER_TEMP/build.log"
+          shopt -s nullglob
+          firmware=(build/"$BUILD_TARGET"/*.{px4,elf,bin})
+          if (( ${#firmware[@]} == 0 )); then
+            echo 'Build finished without a firmware file' >&2
+            exit 1
+          fi
 
       - name: Upload firmware
         uses: actions/upload-artifact@v4
@@ -79,6 +101,7 @@ jobs:
             build/${{ inputs.target }}/*.px4
             build/${{ inputs.target }}/*.elf
             build/${{ inputs.target }}/*.bin
+            ${{ runner.temp }}/BUILD-INFO.md
 
       - name: Upload build log and source version
         if: always()
@@ -89,3 +112,4 @@ jobs:
           path: |
             ${{ runner.temp }}/build.log
             ${{ runner.temp }}/source-version.txt
+            ${{ runner.temp }}/BUILD-INFO.md

@@ -1,0 +1,11 @@
+#!/bin/sh
+# No DRDY pins: these drivers fall back to periodic FIFO reads.
+board_adc start
+bmi088 -A -s -b 1 -R 2 start
+bmi088 -G -s -b 1 -R 2 start
+icm42688p -s -b 2 -R 0 start
+ist8310 -I -b 4 -a 0x0c -R 0 start
+if ! dps310 -I -b 4 -a 0x77 start
+then
+	dps310 -I -b 4 -a 0x76 start
+fi
