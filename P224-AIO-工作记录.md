@@ -2131,3 +2131,8 @@ Windows COM53 的 DEVPKEY_Device_BusReportedDeviceDesc 实测为 vio-v1，说明
 - Bootloader .bin 大小 42392 字节，SHA256 3892a986956882e6686cd64e9f5b605433100aeb15ed48801b49be915ec4356b，ST-Link 起始地址 0x08000000。
 
 本机仅编辑、静态检查、下载和校验，没有本地编译，没有自动烧录、重启或修改设备参数。要让应用与升级模式都显示此次名称，需要更新两份；QGC 5.1.4 的识别效果仍待用户烧录、拔插后实测，编译通过不代表已解决其端口选择问题。
+
+## QGC USB VID/PID 兼容性试验（2026-11-03）
+
+用户反馈名称修改仍不能识别，澄清本次要求修改 USB VID/PID。重新读取官方 QGC v5.1.4 src/Comms/USBBoardInfo.json，确认 9900:17（十六进制 26AC:0011）对应 Pixhawk 类别，名称 PX4 FMU V2。应用与 bootloader 的 CDCACM_VENDORID/PRODUCTID 同步改为此组合，作为识别兼容性试验；该 USB 身份不是本自制板的正式分配。保留 microair / h743 aio 名称以及私有 board_id/BOARD_TYPE=60000，保留引脚、Flash 布局和其余功能。识别后仍只能选择本板配套自定义固件，不应据 USB 名称选择其他硬件的默认固件。此修改针对端口识别阶段，不保证解决后续 bootloader 握手问题。两份固件均由 GitHub Actions 编译，待用户烧录后实测。
+来源：https://github.com/mavlink/qgroundcontrol/blob/v5.1.4/src/Comms/USBBoardInfo.json 。
