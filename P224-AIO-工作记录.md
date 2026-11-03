@@ -1363,3 +1363,656 @@ nsh>
 - 当前证据倾向文件系统/簇链或底层 SD 读写异常，但不足以区分卡损坏与固件 SDMMC 路径问题。建议先断电取卡，经读卡器备份并只读检查文件系统，或换已知正常卡对照；未授权修复前不运行 chkdsk /f 或格式化。
 - 不建议通过飞控反复重启排查此卡：上游 rcS 在块设备存在但挂载失败时会自动尝试 mkfatfs，源码已确认。无卡时本板无检测脚也会声明存在块设备。
 - COM53 已释放。尚未进行飞行/电机输出验证。
+
+## 跳过 SD 的系统检查（2026-11-03）
+
+仅状态查询，未解锁或改参数。电脑端 pymavlink 高层消息缓存遇到异常，改用同库底层 MAVLink 解析读取，不是飞控故障。
+
+```text
+
+### ver uri
+
+NuttShell (NSH) NuttX-12.12.0
+nsh> ver uri
+Build uri: p224_vio-v1_default-r10-a1-af0c6eb3
+nsh>
+
+### commander status
+commander status
+INFO  [commander] Disarmed
+INFO  [commander] navigation mode: Hold
+INFO  [commander] user intended navigation mode: Hold
+INFO  [commander] in failsafe: no
+commander: cycle: 16165 events, 1152297us elapsed, 71.28us avg, min 37us max 1241us 60.825us rms
+commander: preflight check: 1712 events, 297296us elapsed, 173.65us avg, min 105us max 722us 48.555us rms
+nsh>
+
+### sensors status
+sensors status
+selected gyro: 2490386 (1)
+validator: best: 0, prev best: 0, failsafe: NO (0 events)
+sensor #0, prio: 50, state: OK
+	val:  -0.0030, lp:  -0.0015 mean dev:   0.0000 RMS:   0.0084 conf:   1.0000
+	val:   0.0053, lp:   0.0058 mean dev:  -0.0000 RMS:   0.0068 conf:   1.0000
+	val:   0.0030, lp:   0.0009 mean dev:  -0.0000 RMS:   0.0228 conf:   1.0000
+sensor #1, prio: 50, state: OK
+	val:   0.0030, lp:   0.0027 mean dev:   0.0001 RMS:   0.0075 conf:   1.0000
+	val:  -0.0003, lp:   0.0015 mean dev:   0.0000 RMS:   0.0066 conf:   1.0000
+	val:   0.0025, lp:   0.0027 mean dev:  -0.0000 RMS:   0.0217 conf:   1.0000
+
+selected accel: 2490386 (1)
+validator: best: 0, prev best: 0, failsafe: NO (0 events)
+sensor #0, prio: 50, state: OK
+	val:  -1.6655, lp:  -1.6903 mean dev:  -0.0031 RMS:   0.0692 conf:   1.0000
+	val:   0.0947, lp:   0.0713 mean dev:  -0.0001 RMS:   0.0692 conf:   1.0000
+	val:   9.7051, lp:   9.6613 mean dev:   0.0199 RMS:   0.2252 conf:   1.0000
+sensor #1, prio: 50, state: OK
+	val:  -1.8019, lp:  -1.8037 mean dev:  -0.0023 RMS:   0.0593 conf:   1.0000
+	val:   0.0818, lp:   0.0788 mean dev:   0.0001 RMS:   0.0665 conf:   1.0000
+	val:   9.6582, lp:   9.6620 mean dev:   0.0130 RMS:   0.1776 conf:   1.0000
+
+[vehicle_magnetometer] selected MAG: 396833 (0)
+validator: best: 0, prev best: 0, failsafe: NO (0 events)
+sensor #0, prio: 50, state: OK
+	val:  -0.0219, lp:  -0.0220 mean dev:  -0.0006 RMS:   0.0075 conf:   1.0000
+	val:  -0.0001, lp:  -0.0017 mean dev:   0.0009 RMS:   0.0072 conf:   1.0000
+	val:  -0.6562, lp:  -0.6524 mean dev:  -0.0002 RMS:   0.0092 conf:   1.0000
+MAG 396833 EN: 1, offset: [-0.194 -0.192 -0.166], scale: [1.000 1.000 1.000], Internal
+
+[vehicle_air_data] selected BARO: 6845985 (0)
+validator: best: 0, prev best: 0, failsafe: NO (0 events)
+sensor #0, prio: 50, state: OK
+	val: 102861.8516, lp: 102862.8906 mean dev: -15.3041 RMS:  56.0264 conf:   1.0000
+	val:  63.6320, lp:  63.5925 mean dev:  -1.3151 RMS:   5.4612 conf:   1.0000
+	val: -127.2066, lp: -127.2490 mean dev:   1.2481 RMS:   4.5982 conf:   1.0000
+BARO 6845985 EN: 1, offset: 0.000, Internal
+
+Airspeed status:
+	no data
+
+[vehicle_acceleration] selected sensor: 2490386, rate: 799.9 Hz, estimated bias: [0.0833 -0.0856 0.0359]
+ACC 2490386 EN: 1, offset: [0.000 0.014 -0.346], scale: [1.000 1.000 1.000], Internal
+
+[vehicle_angular_velocity] selected sensor: 2490386, rate: 8044.9 Hz FIFO, estimated bias: [0.00294 0.00133 0.00225]
+GYRO 2490386 EN: 1, offset: [0.035 0.004 -0.015], Internal
+vehicle_angular_velocity: gyro filter: 145046 events, 2274118us elapsed, 15.68us avg, min 11us max 199us 1.178us rms
+vehicle_angular_velocity: gyro filter reset: 3 events
+vehicle_angular_velocity: gyro selection changed: 3 events
+
+[vehicle_gps_position] selected GPS: 0
+
+
+[vehicle_imu] 0 - Accel: 6946826, interval: 1250.0 us (SD 97.8 us), Gyro: 6684682, interval: 1500.0 us (SD 125.4 us)
+vehicle_imu: accel data gap: 1 events
+vehicle_imu: gyro data gap: 1 events
+ACC 6946826 EN: 1, offset: [-0.003 0.014 0.054], scale: [1.000 1.000 1.000], Internal
+GYRO 6684682 EN: 1, offset: [0.003 -0.002 -0.002], Internal
+
+[vehicle_imu] 1 - Accel: 2490386, interval: 1250.0 us (SD 30.8 us), Gyro: 2490386, interval: 1250.0 us (SD 30.8 us)
+vehicle_imu: accel data gap: 1 events
+vehicle_imu: gyro data gap: 1 events
+ACC 2490386 EN: 1, offset: [0.000 0.014 -0.346], scale: [1.000 1.000 1.000], Internal
+GYRO 2490386 EN: 1, offset: [0.035 0.004 -0.015], Internal
+nsh>
+
+### ekf2 status
+ekf2 status
+INFO  [ekf2] available instances: 2
+INFO  [ekf2] 0: ACC: 6946826, GYRO: 6684682, MAG: 396833, healthy, test ratio: 1.0000000 (0.00000)
+INFO  [ekf2] 1: ACC: 2490386, GYRO: 2490386, MAG: 396833, healthy, test ratio: 1.0000000 (0.00000) *
+
+ekf2:0 EKF dt: 0.0102s, attitude: 1, local position: 0, global position: 0
+ekf2: EKF update: 17787 events, 6339960us elapsed, 356.44us avg, min 104us max 1005us 130.732us rms
+ekf2: IMU message missed: 1 events
+
+ekf2:1 EKF dt: 0.0099s, attitude: 1, local position: 0, global position: 0
+ekf2: EKF update: 18233 events, 7015426us elapsed, 384.77us avg, min 104us max 1742us 190.529us rms
+ekf2: IMU message missed: 0 events
+nsh>
+
+### listener vehicle_status -n 1
+listener vehicle_status -n 1
+
+TOPIC: vehicle_status
+ vehicle_status
+    timestamp: 185692900 (0.231246 seconds ago)
+    armed_time: 0
+    takeoff_time: 0
+    nav_state_timestamp: 1222998
+    valid_nav_states_mask: 2147411327
+    can_set_nav_states_mask: 8308095
+    failure_detector_status: 1
+    arming_state: 1
+    latest_arming_reason: 0
+    latest_disarming_reason: 0
+    nav_state_user_intention: 4
+    nav_state: 4
+    executor_in_charge: 0
+    hil_state: 0
+    vehicle_type: 1
+    failsafe: False
+    failsafe_and_user_took_over: False
+    failsafe_defer_state: 0
+    gcs_connection_lost: True
+    gcs_connection_lost_counter: 0
+    high_latency_data_link_lost: False
+    is_vtol: False
+    is_vtol_tailsitter: False
+    in_transition_mode: False
+    in_transition_to_fw: False
+    system_type: 2
+    system_id: 1
+    component_id: 1
+    safety_button_available: True
+    safety_off: True
+    power_input_valid: True
+    usb_connected: True
+    open_drone_id_system_present: False
+    open_drone_id_system_healthy: False
+    parachute_system_present: False
+    parachute_system_healthy: False
+    rc_calibration_in_progress: False
+    calibration_enabled: False
+    pre_flight_checks_pass: False
+
+nsh>
+
+### listener estimator_status_flags -n 1
+listener estimator_status_flags -n 1
+
+TOPIC: estimator_status_flags 2 instances
+
+Instance 0:
+ estimator_status_flags
+    timestamp: 187266117 (0.360094 seconds ago)
+    timestamp_sample: 187075175 (190942 us before timestamp)
+    control_status_changes: 31
+    fault_status_changes: 0
+    innovation_fault_status_changes: 2
+    cs_tilt_align: True
+    cs_yaw_align: True
+    cs_gnss_pos: False
+    cs_opt_flow: False
+    cs_mag_hdg: True
+    cs_mag_3d: False
+    cs_mag_dec: True
+    cs_in_air: False
+    cs_wind: False
+    cs_baro_hgt: True
+    cs_rng_hgt: False
+    cs_gps_hgt: False
+    cs_ev_pos: False
+    cs_ev_yaw: False
+    cs_ev_hgt: False
+    cs_fuse_beta: False
+    cs_mag_field_disturbed: False
+    cs_fixed_wing: False
+    cs_mag_fault: False
+    cs_fuse_aspd: False
+    cs_gnd_effect: False
+    cs_rng_stuck: False
+    cs_gnss_yaw: False
+    cs_mag_aligned_in_flight: False
+    cs_ev_vel: False
+    cs_synthetic_mag_z: False
+    cs_vehicle_at_rest: True
+    cs_gnss_yaw_fault: False
+    cs_rng_fault: False
+    cs_inertial_dead_reckoning: True
+    cs_wind_dead_reckoning: False
+    cs_rng_kin_consistent: False
+    cs_fake_pos: False
+    cs_fake_hgt: False
+    cs_gravity_vector: True
+    cs_mag: True
+    cs_ev_yaw_fault: False
+    cs_mag_heading_consistent: True
+    cs_aux_gpos: False
+    cs_rng_terrain: False
+    cs_opt_flow_terrain: False
+    cs_valid_fake_pos: True
+    cs_constant_pos: False
+    cs_baro_fault: False
+    cs_gnss_vel: False
+    cs_gnss_fault: False
+    cs_yaw_manual: False
+    cs_gnss_hgt_fault: False
+    fs_bad_mag_x: False
+    fs_bad_mag_y: False
+    fs_bad_mag_z: False
+    fs_bad_hdg: False
+    fs_bad_mag_decl: False
+    fs_bad_airspeed: False
+    fs_bad_sideslip: False
+    fs_bad_optflow_x: False
+    fs_bad_optflow_y: False
+    fs_bad_acc_vertical: False
+    fs_bad_acc_clipping: False
+    reject_hor_vel: False
+    reject_ver_vel: False
+    reject_hor_pos: False
+    reject_ver_pos: False
+    reject_yaw: False
+    reject_airspeed: False
+    reject_sideslip: False
+    reject_hagl: False
+    reject_optflow_x: False
+    reject_optflow_y: False
+
+
+Instance 1:
+ estimator_status_flags
+    timestamp: 187381867 (0.340733 seconds ago)
+    timestamp_sample: 187190321 (191546 us before timestamp)
+    control_status_changes: 29
+    fault_status_changes: 0
+    innovation_fault_status_changes: 2
+    cs_tilt_align: True
+    cs_yaw_align: True
+    cs_gnss_pos: False
+    cs_opt_flow: False
+    cs_mag_hdg: True
+    cs_mag_3d: False
+    cs_mag_dec: True
+    cs_in_air: False
+    cs_wind: False
+    cs_baro_hgt: True
+    cs_rng_hgt: False
+    cs_gps_hgt: False
+    cs_ev_pos: False
+    cs_ev_yaw: False
+    cs_ev_hgt: False
+    cs_fuse_beta: False
+    cs_mag_field_disturbed: False
+    cs_fixed_wing: False
+    cs_mag_fault: False
+    cs_fuse_aspd: False
+    cs_gnd_effect: False
+    cs_rng_stuck: False
+    cs_gnss_yaw: False
+    cs_mag_aligned_in_flight: False
+    cs_ev_vel: False
+    cs_synthetic_mag_z: False
+    cs_vehicle_at_rest: True
+    cs_gnss_yaw_fault: False
+    cs_rng_fault: False
+    cs_inertial_dead_reckoning: True
+    cs_wind_dead_reckoning: False
+    cs_rng_kin_consistent: False
+    cs_fake_pos: False
+    cs_fake_hgt: False
+    cs_gravity_vector: True
+    cs_mag: True
+    cs_ev_yaw_fault: False
+    cs_mag_heading_consistent: True
+    cs_aux_gpos: False
+    cs_rng_terrain: False
+    cs_opt_flow_terrain: False
+    cs_valid_fake_pos: True
+    cs_constant_pos: False
+    cs_baro_fault: False
+    cs_gnss_vel: False
+    cs_gnss_fault: False
+    cs_yaw_manual: False
+    cs_gnss_hgt_fault: False
+    fs_bad_mag_x: False
+    fs_bad_mag_y: False
+    fs_bad_mag_z: False
+    fs_bad_hdg: False
+    fs_bad_mag_decl: False
+    fs_bad_airspeed: False
+    fs_bad_sideslip: False
+    fs_bad_optflow_x: False
+    fs_bad_optflow_y: False
+    fs_bad_acc_vertical: False
+    fs_bad_acc_clipping: False
+    reject_hor_vel: False
+    reject_ver_vel: False
+    reject_hor_pos: False
+    reject_ver_pos: False
+    reject_yaw: False
+    reject_airspeed: False
+    reject_sideslip: False
+    reject_hagl: False
+    reject_optflow_x: False
+    reject_optflow_y: False
+
+nsh>
+
+### listener vehicle_attitude -n 1
+listener vehicle_attitude -n 1
+
+TOPIC: vehicle_attitude
+ vehicle_attitude
+    timestamp: 189330603 (0.006476 seconds ago)
+    timestamp_sample: 189330197 (406 us before timestamp)
+    q: [-0.09453, -0.16468, 0.98150, -0.02437] (Roll: -179.0 deg, Pitch: -11.2 deg, Yaw: -161.0 deg)
+    delta_q_reset: [-0.92288, -0.00000, 0.00000, -0.38508]
+    quat_reset_counter: 1
+
+nsh>
+
+### listener sensor_baro -n 1
+listener sensor_baro -n 1
+
+TOPIC: sensor_baro
+ sensor_baro
+    timestamp: 191033932 (0.010845 seconds ago)
+    timestamp_sample: 191033075 (857 us before timestamp)
+    device_id: 6845985 (Type: 0x68, I2C:4 (0x76))
+    pressure: 102861.40625
+    temperature: 63.66594
+    error_count: 0
+nsh>
+
+### listener adc_report -n 1
+listener adc_report -n 1
+
+TOPIC: adc_report
+ adc_report
+    timestamp: 192748783 (0.001085 seconds ago)
+    device_id: 4294967295 (Type: 0xFF, UNKNOWN:31 (0xFF))
+    raw_data: [0, 0, 10095, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    resolution: 65536
+    v_ref: 3.30000
+    channel_id: [4, 18, 20, -1, -1, -1, -1, -1, -1, -1, -1, -1]
+
+nsh>
+
+### listener cpuload -n 1
+listener cpuload -n 1
+
+TOPIC: cpuload
+ cpuload
+    timestamp: 194054302 (0.395929 seconds ago)
+    load: 0.38502
+    ram_usage: 0.27851
+nsh>
+
+### free
+free
+                   total       used       free    largest  nused  nfree
+        Umem:     961840     264224     697616     468720   1105     59
+        Prog:    2097184    1526624     570560     352096  47707  17830
+nsh>
+
+```
+
+### 输出与配置状态（只读）
+
+```text
+
+### dshot status
+
+NuttShell (NSH) NuttX-12.12.0
+nsh> dshot status
+INFO  [dshot] Outputs initialized: yes
+INFO  [dshot] Outputs used: 0xf
+INFO  [dshot] Outputs on: yes
+dshot: cycle: 741 events, 4480us elapsed, 6.05us avg, min 4us max 666us 24.504us rms
+dshot: bdshot rpm: 741 events
+dshot: dshot telem: 0 events
+INFO  [mixer_module] Param prefix: PWM_MAIN
+control latency: 0 events, 0us elapsed, 0.00us avg, min 0us max 0us 0.000us rms
+Channel Configuration:
+Channel 0: func:   0, value: 0, failsafe: 0, disarmed: 0, min: 109, max: 1999, center: 65535
+Channel 1: func:   0, value: 0, failsafe: 0, disarmed: 0, min: 109, max: 1999, center: 65535
+Channel 2: func:   0, value: 0, failsafe: 0, disarmed: 0, min: 109, max: 1999, center: 65535
+Channel 3: func:   0, value: 0, failsafe: 0, disarmed: 0, min: 109, max: 1999, center: 65535
+Channel 4: func:   0, value: 0, failsafe: 0, disarmed: 0, min: 109, max: 1999, center: 65535
+Channel 5: func:   0, value: 0, failsafe: 0, disarmed: 0, min: 109, max: 1999, center: 65535
+Channel 6: func:   0, value: 0, failsafe: 0, disarmed: 0, min: 109, max: 1999, center: 65535
+Channel 7: func:   0, value: 0, failsafe: 0, disarmed: 0, min: 109, max: 1999, center: 65535
+Channel 8: func:   0, value: 0, failsafe: 0, disarmed: 0, min: 109, max: 1999, center: 65535
+INFO  [arch_dshot] dshot driver stats:
+INFO  [arch_dshot] Bidirectional DShot enabled
+INFO  [arch_dshot] Timer 0, Channel 0: read 0, failed nibble 0, failed CRC 0, invalid/zero 0
+INFO  [arch_dshot] Timer 0, Channel 1: read 0, failed nibble 0, failed CRC 0, invalid/zero 0
+INFO  [arch_dshot] Timer 0, Channel 2: read 0, failed nibble 0, failed CRC 0, invalid/zero 0
+INFO  [arch_dshot] Timer 0, Channel 3: read 0, failed nibble 0, failed CRC 0, invalid/zero 0
+nsh>
+
+### pwm_out status
+pwm_out status
+pwm_out: cycle: 747 events, 3113us elapsed, 4.17us avg, min 3us max 173us 6.205us rms
+pwm_out: interval: 747 events, 299197.04us avg, min 226us max 300078us 10968.152us rms
+INFO  [mixer_module] Param prefix: PWM_MAIN
+control latency: 0 events, 0us elapsed, 0.00us avg, min 0us max 0us 0.000us rms
+Channel Configuration:
+Channel 0: func:   0, value: 1000, failsafe: 1000, disarmed: 1000, min: 1000, max: 2000, center: 65535
+Channel 1: func:   0, value: 1000, failsafe: 1000, disarmed: 1000, min: 1000, max: 2000, center: 65535
+Channel 2: func:   0, value: 1000, failsafe: 1000, disarmed: 1000, min: 1000, max: 2000, center: 65535
+Channel 3: func:   0, value: 1000, failsafe: 1000, disarmed: 1000, min: 1000, max: 2000, center: 65535
+Channel 4: func:   0, value: 1000, failsafe: 1000, disarmed: 1000, min: 1000, max: 2000, center: 65535
+Channel 5: func:   0, value: 1000, failsafe: 1000, disarmed: 1000, min: 1000, max: 2000, center: 65535
+Channel 6: func:   0, value: 1000, failsafe: 1000, disarmed: 1000, min: 1000, max: 2000, center: 65535
+Channel 7: func:   0, value: 1000, failsafe: 1000, disarmed: 1000, min: 1000, max: 2000, center: 65535
+Channel 8: func:   0, value: 1000, failsafe: 1000, disarmed: 1000, min: 1000, max: 2000, center: 65535
+Timer 1: rate: 400 channels: 4 5
+Timer 2: rate: 400 channels: 6 7
+Timer 3: rate: 400 channels: 8
+nsh>
+
+### control_allocator status
+control_allocator status
+INFO  [control_allocator] Running
+INFO  [control_allocator] Method: Auto
+INFO  [control_allocator] Effectiveness Source: Multirotor
+INFO  [control_allocator]   Effectiveness.T =
+  | 0      | 1      | 2      | 3      | 4      | 5
+ 0|-6.50000  6.50000  0.32500  0        0       -6.50000
+ 1| 6.50000 -6.50000  0.32500  0        0       -6.50000
+ 2| 6.50000  6.50000 -0.32500  0        0       -6.50000
+ 3|-6.50000 -6.50000 -0.32500  0        0       -6.50000
+ 4| 0        0        0        0        0        0
+ 5| 0        0        0        0        0        0
+ 6| 0        0        0        0        0        0
+ 7| 0        0        0        0        0        0
+ 8| 0        0        0        0        0        0
+ 9| 0        0        0        0        0        0
+10| 0        0        0        0        0        0
+11| 0        0        0        0        0        0
+12| 0        0        0        0        0        0
+13| 0        0        0        0        0        0
+14| 0        0        0        0        0        0
+15| 0        0        0        0        0        0
+INFO  [control_allocator]   minimum =
+  | 0      | 1      | 2      | 3      | 4      | 5      | 6      | 7      | 8      | 9      |10      |11      |12      |13      |14      |15
+ 0| 0        0        0        0        0        0        0        0        0        0        0        0        0        0        0        0
+INFO  [control_allocator]   maximum =
+  | 0      | 1      | 2      | 3      | 4      | 5      | 6      | 7      | 8      | 9      |10      |11      |12      |13      |14      |15
+ 0| 1.00000  1.00000  1.00000  1.00000  0        0        0        0        0        0        0        0        0        0        0        0
+INFO  [control_allocator]   Configured actuators: 4
+control_allocator: cycle: 180094 events, 3756452us elapsed, 20.86us avg, min 18us max 183us 2.263us rms
+nsh>
+
+### mavlink status
+mavlink status
+
+instance #0:
+	mavlink chan: #0
+	type:		GENERIC LINK OR RADIO
+	flow control: OFF
+	rates:
+	  tx: 801.0 B/s
+	  txerr: 0.0 B/s
+	  tx rate mult: 0.325
+	  tx rate max: 1200 B/s
+	  rx: 0.0 B/s
+	  rx loss: 0.0%
+	FTP enabled: YES, TX enabled: YES
+	mode: Normal
+	Forwarding: On
+	MAVLink version: 2
+	transport protocol: serial (/dev/ttyS0 @57600)
+
+instance #1:
+	mavlink chan: #1
+	type:		USB CDC
+	flow control: OFF
+	rates:
+	  tx: 21154.8 B/s
+	  txerr: 0.0 B/s
+	  tx rate mult: 1.000
+	  tx rate max: 100000 B/s
+	  rx: 0.0 B/s
+	  rx loss: 21.6%
+	Received Messages:
+	  sysid:254, compid:  0, Total: 18 (lost: 493)
+	  sysid:254, compid:190, Total: 16 (lost: 243)
+	FTP enabled: YES, TX enabled: YES
+	mode: Onboard
+	Forwarding: On
+	MAVLink version: 2
+	transport protocol: serial (/dev/ttyACM0 @2000000)
+nsh>
+
+### param show PWM_MAIN*
+param show PWM_MAIN*
+Symbols: x = used, + = saved, * = unsaved
+x   PWM_MAIN_CENT1 [651,963] : -1
+x   PWM_MAIN_CENT2 [652,964] : -1
+x   PWM_MAIN_CENT3 [653,965] : -1
+x   PWM_MAIN_CENT4 [654,966] : -1
+x   PWM_MAIN_CENT5 [655,967] : -1
+x   PWM_MAIN_CENT6 [656,968] : -1
+x   PWM_MAIN_CENT7 [657,969] : -1
+x   PWM_MAIN_CENT8 [658,970] : -1
+x   PWM_MAIN_CENT9 [659,971] : -1
+x   PWM_MAIN_DIS1 [660,972] : 1000
+x   PWM_MAIN_DIS2 [661,973] : 1000
+x   PWM_MAIN_DIS3 [662,974] : 1000
+x   PWM_MAIN_DIS4 [663,975] : 1000
+x   PWM_MAIN_DIS5 [664,976] : 1000
+x   PWM_MAIN_DIS6 [665,977] : 1000
+x   PWM_MAIN_DIS7 [666,978] : 1000
+x   PWM_MAIN_DIS8 [667,979] : 1000
+x   PWM_MAIN_DIS9 [668,980] : 1000
+x   PWM_MAIN_FAIL1 [669,981] : -1
+x   PWM_MAIN_FAIL2 [670,982] : -1
+x   PWM_MAIN_FAIL3 [671,983] : -1
+x   PWM_MAIN_FAIL4 [672,984] : -1
+x   PWM_MAIN_FAIL5 [673,985] : -1
+x   PWM_MAIN_FAIL6 [674,986] : -1
+x   PWM_MAIN_FAIL7 [675,987] : -1
+x   PWM_MAIN_FAIL8 [676,988] : -1
+x   PWM_MAIN_FAIL9 [677,989] : -1
+x   PWM_MAIN_FUNC1 [678,990] : 0
+x   PWM_MAIN_FUNC2 [679,991] : 0
+x   PWM_MAIN_FUNC3 [680,992] : 0
+x   PWM_MAIN_FUNC4 [681,993] : 0
+x   PWM_MAIN_FUNC5 [682,994] : 0
+x   PWM_MAIN_FUNC6 [683,995] : 0
+x   PWM_MAIN_FUNC7 [684,996] : 0
+x   PWM_MAIN_FUNC8 [685,997] : 0
+x   PWM_MAIN_FUNC9 [686,998] : 0
+x   PWM_MAIN_MAX1 [687,999] : 2000
+x   PWM_MAIN_MAX2 [688,1000] : 2000
+x   PWM_MAIN_MAX3 [689,1001] : 2000
+x   PWM_MAIN_MAX4 [690,1002] : 2000
+x   PWM_MAIN_MAX5 [691,1003] : 2000
+x   PWM_MAIN_MAX6 [692,1004] : 2000
+x   PWM_MAIN_MAX7 [693,1005] : 2000
+x   PWM_MAIN_MAX8 [694,1006] : 2000
+x   PWM_MAIN_MAX9 [695,1007] : 2000
+x   PWM_MAIN_MIN1 [696,1008] : 1000
+x   PWM_MAIN_MIN2 [697,1009] : 1000
+x   PWM_MAIN_MIN3 [698,1010] : 1000
+x   PWM_MAIN_MIN4 [699,1011] : 1000
+x   PWM_MAIN_MIN5 [700,1012] : 1000
+x   PWM_MAIN_MIN6 [701,1013] : 1000
+x   PWM_MAIN_MIN7 [702,1014] : 1000
+x   PWM_MAIN_MIN8 [703,1015] : 1000
+x   PWM_MAIN_MIN9 [704,1016] : 1000
+x   PWM_MAIN_REV [705,1017] : 0
+x + PWM_MAIN_TIM0 [706,1018] : -3
+x   PWM_MAIN_TIM1 [707,1019] : 400
+x   PWM_MAIN_TIM2 [708,1020] : 400
+x   PWM_MAIN_TIM3 [709,1021] : 400
+
+ 920/1537 parameters used.
+nsh>
+
+### param show DSHOT*
+param show DSHOT*
+Symbols: x = used, + = saved, * = unsaved
+x   DSHOT_3D_DEAD_H [284,519] : 1000
+x   DSHOT_3D_DEAD_L [285,520] : 1000
+x   DSHOT_3D_ENABLE [286,521] : 0
+x   DSHOT_BIDIR_EN [287,522] : 1
+x   DSHOT_MIN [288,523] : 0.0550
+x   DSHOT_TEL_CFG [289,524] : 0
+
+ 920/1537 parameters used.
+nsh>
+
+### param show SENS_BOARD*
+param show SENS_BOARD*
+Symbols: x = used, + = saved, * = unsaved
+x   SENS_BOARD_ROT [845,1179] : 0
+x   SENS_BOARD_X_OFF [846,1180] : 0.0000
+x   SENS_BOARD_Y_OFF [847,1181] : 0.0000
+x   SENS_BOARD_Z_OFF [848,1182] : 0.0000
+
+ 920/1537 parameters used.
+nsh>
+
+### param show FD_FAIL*
+param show FD_FAIL*
+Symbols: x = used, + = saved, * = unsaved
+x   FD_FAIL_P [440,676] : 60
+x   FD_FAIL_P_TTRI [441,677] : 0.3000
+x   FD_FAIL_R [442,678] : 60
+x   FD_FAIL_R_TTRI [443,679] : 0.3000
+
+ 920/1537 parameters used.
+nsh>
+
+### listener esc_status -n 1
+listener esc_status -n 1
+never published
+nsh>
+
+### listener input_rc -n 1
+listener input_rc -n 1
+never published
+nsh>
+
+### param show COM_ARM*
+param show COM_ARM*
+Symbols: x = used, + = saved, * = unsaved
+x   COM_ARMABLE [210,437] : 1
+x   COM_ARM_AUTH_ID [211,438] : 10
+x   COM_ARM_AUTH_MET [212,439] : 0
+x   COM_ARM_AUTH_REQ [213,440] : 0
+x   COM_ARM_AUTH_TO [214,441] : 1.0000
+x   COM_ARM_BAT_MIN [215,442] : -1.0000
+x   COM_ARM_CHK_ESCS [216,443] : 0
+x   COM_ARM_HFLT_CHK [217,444] : 1
+x   COM_ARM_IMU_ACC [218,445] : 0.7000
+x   COM_ARM_IMU_GYR [219,446] : 0.2500
+x   COM_ARM_MAG_ANG [220,447] : 60
+x   COM_ARM_MAG_STR [221,448] : 2
+x   COM_ARM_MIS_REQ [222,449] : 0
+x   COM_ARM_ODID [223,450] : 0
+x   COM_ARM_SDCARD [224,451] : 1
+x   COM_ARM_SWISBTN [225,452] : 0
+x   COM_ARM_WO_GPS [226,453] : 1
+
+ 920/1537 parameters used.
+nsh>
+
+```
+
+### 跳过 SD 的系统检查结论
+
+- 用户确认当前背面朝上、略倾斜；Roll -179°、Pitch -11.2°，两组加计 Z 约 +9.7 m/s²，与该摆放相符。滚转 failure flag 不据此判定 IMU 故障；尚需正面平放及逐轴动作验证。
+- 两组 IMU、磁力计、气压计 validator 均 OK；两个 EKF 实例均 healthy，tilt/yaw 对齐完成，未置磁场/气压故障标志。姿态有效；本地/全局位置无效，没有 GNSS/光流/外部定位输入，不能验证定位模式。
+- CPU 负载 38.5%，RAM 27.9%；free 显示用户内存剩余 697616 B，最大连续块 468720 B，未见资源耗尽。
+- ADC 内部温度通道 raw 10095 有效；外部电池通道均 0，用户此前确认仅 USB 供电，不能据此验收主电池采样。气压计自报温度约 63.7°C，仍需对照实际板温，不能直接判定为环境温度或硬件过热。
+- DShot 初始化成功，mask 0x0f；双向启用，RPM 成功读取数 0、esc_status 未发布，尚未验证 ESC 回传。PWM 其余输出索引4/5、6/7、8分组运行于400 Hz。
+- 当前已保存 PWM_MAIN_TIM0=-3，源码确认对应 DShot600；初版默认 -4/DShot300，被已保存参数覆盖。未擅自改回。
+- PWM_MAIN_FUNC1～9 全部为0（禁用）；虽控制分配器配置四旋翼，输出尚未绑定 Motor1～4，因此不是可直接控制电机的配置。未设置映射、未执行输出测试。
+- input_rc 从未发布；GPS 无数据。四串口中仅 ttyS0 的 MAVLink 已启动，另外三路未接外设回环验证，不能宣布四串口硬件全部正常。
+- USB MAVLink txerr=0；rx loss统计包含多次短会话重置序列号，不把该累计值直接当 USB 物理丢包结论。
+- 检查期间仍未解锁、未修改参数、未触发输出。所有串口已关闭。SD问题按用户要求跳过，未清除相关安全检查。
