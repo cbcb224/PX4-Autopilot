@@ -2154,3 +2154,15 @@ Bootloader Actions #14 成功：https://github.com/cbcb224/PX4-Autopilot/actions
 
 用户反馈 26AC:0011 已可识别，并要求改用 microair / h743 aio 的 USB VID/PID、名称改回原来的。根据厂商文档对应的 PX4 目标 micoair_h743-aio，直接核对本仓库 v1.17.0 boards/micoair/h743-aio/nuttx-config：nsh 使用 VID:PID=1B8C:0036，bootloader 使用3162:004B；两种模式本来就是不同组合，分别照此应用，而不是假设一个统一 ID。这两组 ID 在 QGC 5.1.4 表中分别按 PX4 FMU V6U、PX4 DurandalV1 分类，显示名称未必是 MicoAir，但均为 Pixhawk 类。USB 身份仅作本板兼容性实验，不改变自制硬件身份或引脚配置。恢复厂商名 p224，应用产品名 vio-v1，bootloader 产品名 vio-v1 BL，USBMFGSTRING=p224。board_id/BOARD_TYPE 继续为60000。仅改 USB 描述符，固件仍须使用本板配套自定义文件。两份 GitHub Actions 编译，不本地编译，不自动烧录。
 厂商目标来源：https://micoair.com/en/docs/flight-controller/micoair743-aio-series/micoair743-aio-35a-manual 。
+
+### MicoAir ID / P224 名称编译结果
+
+源码提交 794e671ef2c1188a73ff4c73fe0ca32e5a4ec46f。
+应用 Actions #15 成功：https://github.com/cbcb224/PX4-Autopilot/actions/runs/41585684504 。
+Bootloader Actions #16 成功：https://github.com/cbcb224/PX4-Autopilot/actions/runs/41585687388 。
+下载 ZIP 的 SHA256 均与 GitHub artifact digest 匹配：应用 1524bc72f4dae78dc7427ff701df316593d78204792dcbf92c214143a77886ab，bootloader d8ba5b423e1f83c27dbe998f44f6489f61a194ee5c94acb352dd7024b91cbba6。
+二进制 USB 设备描述符实测应用=1B8C:0036、bootloader=3162:004B，原厂商名 p224、对应产品名 vio-v1 / vio-v1 BL 均检出。两份 .px4 board_id=60000，解压 image 与 .bin 逐字节一致，Build ID 正确。
+- application-micoid-r15/p224_vio-v1_default.bin：1482920 字节，SHA256 236b9cac5710b7c4ad04b21df3b1cc9749d719bf77aad15afbf28eab20252cd3。
+- bootloader-micoid-r16/p224_vio-v1_bootloader.bin：42392 字节，SHA256 95784d28ce035dadb0eca50d2a9c7535ef1115e695878602b85cd4110f4db6de。
+
+应用烧录地址 0x08020000，bootloader 地址 0x08000000；两份均需更新。未本地编译，未自动烧录或重启。此组合仍待用户实测。
