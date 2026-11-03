@@ -2166,3 +2166,17 @@ Bootloader Actions #16 成功：https://github.com/cbcb224/PX4-Autopilot/actions
 - bootloader-micoid-r16/p224_vio-v1_bootloader.bin：42392 字节，SHA256 95784d28ce035dadb0eca50d2a9c7535ef1115e695878602b85cd4110f4db6de。
 
 应用烧录地址 0x08020000，bootloader 地址 0x08000000；两份均需更新。未本地编译，未自动烧录或重启。此组合仍待用户实测。
+
+## QGC 成功升级后的实机检查（2026-11-03）
+
+用户提供 QGC 完整升级日志：发现 PX4 FMU V2 (COM55)，bootloader 版本5、board ID60000、Flash1835008字节；选用 application-micoid-r15/p224_vio-v1_default.px4，擦除、写入、校验完成并重启。表明本板经QGC自定义固件升级链路已成功。日志名称不能据此证明最新r16 bootloader已烧录；本次未重启进入bootloader读取其USB ID。
+
+电脑当前实测应用端口 COM59，USB VID:PID=1B8C:0036，序列号0；Windows BusReportedDeviceDesc=vio-v1，产品名恢复已验证。首次读取串口拒绝访问，QGC进程仍运行；用户关闭QGC后串口访问成功。
+
+只读 MAVLink shell 检查：
+- ver all：HW P224_VIO_V1，PX4 1.17.0，git794e671ef2c1188a73ff4c73fe0ca32e5a4ec46f，Build URI p224_vio-v1_default-r15-a1-794e671e，NuttX12.12.0。已确认最新应用实际运行。
+- commander：Disarmed，Hold，in failsafe=no。该结果不代表飞行前检查全部通过。
+- sensors：两组gyro、accel，以及MAG396833、BARO6845985均state OK、conf1.0，无validator failsafe；gyro约1999.7Hz、accel约399.9Hz。每组IMU data gap累计1次，本次快照不能判断其是否仅为启动事件。气压计温度约65.9°C，与前次读数相近，未据此判定硬件过热。GPS和空速无数据。
+- dshot：前四路Outputs used=0xf，Bidirectional DShot enabled；PWM_MAIN_TIM0=-4、DSHOT_BIDIR_EN=1，BDShot300配置保留。九路func均0，未配置电机功能；四路read0，无有效转速回传，不能据此宣称电调端到端验证完成。
+
+本次未改参数、未解锁、未测试电机、未重启、未检查SD卡。所有串口查询完成后已释放COM59，可以重新打开QGC。
