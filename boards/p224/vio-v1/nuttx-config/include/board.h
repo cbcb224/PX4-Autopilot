@@ -290,7 +290,7 @@
 
 #define STM32_SDMMC_INIT_CLKDIV     (250 << STM32_SDMMC_CLKCR_CLKDIV_SHIFT)
 
-/* SD diagnostic: PLL1Q 200 MHz / (2 * 20) = 5 MHz; retain 4-bit IDMA. */
+/* SD diagnostic: PLL1Q 200 MHz / (2 * 20) = 5 MHz; bus width is selected in defconfig. */
 
 #if defined(CONFIG_STM32H7_SDMMC_XDMA) || defined(CONFIG_STM32H7_SDMMC_IDMA)
 #  define STM32_SDMMC_MMCXFR_CLKDIV   (20 << STM32_SDMMC_CLKCR_CLKDIV_SHIFT)

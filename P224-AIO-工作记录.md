@@ -2260,3 +2260,15 @@ GitHub Actions #18 成功：https://github.com/cbcb224/PX4-Autopilot/actions/run
 Actions #19成功：https://github.com/cbcb224/PX4-Autopilot/actions/runs/41655766505 ，源码3e2c61c16ec382c77b922fc99052cc62ce9968ad，Build URI p224_vio-v1_default-r19-a1-3e2c61c1。目录P224-VIO-v1-固件/application-sd5mhz-r19；下载ZIP SHA256=31a1ca0bce3638da182d7da4e750a6939cc30ea4833698757a28750436fd43f2与云端一致。bin1502084字节，SHA256=2c39c3a308219f19f610016feeeabe5f07dfeb210225e8886fab5de3b1ffa705。
 
 已检查board_id60000、.px4解压image与bin相同、Build URI正确、大小在1792KiB范围内；ELF保留rgbled_gpio_main/crsf_rc_main/rc_input_main。与r18 ELF对比，cmd_mkfatfs符号由存在变为不存在，证实NSH格式化命令未编入。时钟依据已提交board.h分频20计算5MHz，尚未上板测量波形或验证卡读取效果。未本地编译、未自动烧录/重启、未主动写卡或修改设备参数。交付QGC用.px4应用文件，bootloader不更新；建议重要数据先备份，因为固件普通启动仍会自动尝试日志/备份写入，不能将此固件视为只读存储模式。待用户更新后先检查现卡挂载、目录和文件访问错误。
+
+## r19 5MHz 实机检查结果（2026-11-03）
+
+用户报告更新完成，并确认64GB卡始终插着、无通电拔插。COM59 ver uri确认p224_vio-v1_default-r19-a1-3e2c61c1。mount/df均不含/fs/microsd；/dev/mmcsd0存在，ls长度559939584，分区节点mmcsd0p1不存在。未挂载时曾见/fs/microsd/log/sess100目录，它是本地挂载点下目录，不能当作卡内容读取成功。卡内dataman/parameters_backup.bson访问为No such file（未挂载状态），不同于r18挂载后I/O error。
+
+logger Running但Not logging，dataman worker未运行，启动缓冲已被dataman_client超时和Missing FMU SD Card等消息覆盖。飞控Disarmed、Hold，failsafe=no。尝试显式只读mount -t vfat -o ro /dev/mmcsd0 /fs/microsd返回Connection timed out；随后mount确认仍未挂载。未执行写入、格式化、卸载已挂卡、重启或参数修改，诊断串口关闭。
+
+结论：5MHz四线IDMA对照未恢复存储访问，当前障碍是挂载时传输超时；不能归因为20MHz本身过高，也不能排除硬件信号/供电/接触或软件DMA/cache。下一阶段以5MHz单线对照并补SDMMC CRC/timeout诊断为宜；单凭本结果不宣称PCB损坏。原r18与新r19错误阶段不同，须保留差异，不称降速后已修复。
+
+## 5MHz 单线对照固件（2026-11-03）
+
+用户明确要求尝试5MHz单线。在r19基础上只增加CONFIG_SDMMC1_WIDTH_D1_ONLY=y，board.h仅修正注释以避免误称四线；传输分频20（约5MHz）、初始化400kHz、IDMA、cache及格式化命令禁用保持。已查NuttX Kconfig和stm32_sdmmc.c：该选项令onebit=true并报告SDIO_CAPS_1BIT_ONLY，只配置D0、CK、CMD而不配置D1/D2/D3；选项名称虽含D1但含义为1-bit，不是DAT1。实际总线为PC12 CLK、PD2 CMD、PC8 DAT0。此为诊断应用，不能据单线成功直接认定虚焊；单线失败也不能排除公共线路或供电问题。通过Actions编译，不本地编译，不自动烧录。保留原r19供对照。
