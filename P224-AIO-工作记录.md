@@ -2204,3 +2204,19 @@ Bootloader Actions #16 成功：https://github.com/cbcb224/PX4-Autopilot/actions
 应用Actions #17成功：https://github.com/cbcb224/PX4-Autopilot/actions/runs/41612326052 ，源码a9e6bf98b7c206e0925fa3e39162b99e29b68915，Build ID p224_vio-v1_default-r17-a1-a9e6bf98。下载目录P224-VIO-v1-固件/application-elrs-r17，ZIP SHA256=f7381d7737811d853d9b53f47aef3e75d0f8095afd22377e6a039b7927590533，与GitHub digest一致。应用bin1503480字节，SHA256=761455f7d2126334625cf8871921d4309fb91714c0dfe228c1ce75adc6e3f889。
 
 产物检查：bin中检出RC_PORT_CONFIG、RC_INPUT_PROTO、RC_CRSF_PRT_CFG、RC_CRSF_TEL_EN和本次Build ID；ELF符号表检出rc_input_main、crsf_rc_main，确认两驱动已编入；board_id60000、USB1B8C:0036保持，.px4解压image与bin逐字节一致。本机未编译、未烧录、未改设备参数。QGC选择本目录p224_vio-v1_default.px4即可更新应用，bootloader不用改。更新后检查RC_CRSF_PRT_CFG=103(TELEM3)，RC_PORT_CONFIG=0(Disabled)，重启应用后生效；ELRS端到端接收仍待实机验证。UART7 RX=PB3接接收机TX，UART7 TX=PA15接接收机RX，共地。
+
+## 电池显示 -100% 排查（2026-11-03）
+
+用户报告万用表12.37V、显示-100%，确认供电是可调电源而非电池。COM59只读检查确认运行r17；battery_status voltage_v=12.27155、connected=True、remaining=-1、cell_count=0、warning=3，ADC18原始24040、参考3.3V/65536，采样有效。BAT1_N_CELLS=0、BAT1_CAPACITY=-1、BAT1_V_DIV=10.0909、BAT1_V_CHARGED=4.05、BAT1_V_EMPTY=3.6、BAT1_I_OVERWRITE=0；电流0不能用作电流采样校准证据。源码battery.cpp在n_cells==0时返回SOC=-1，MAVLink发送乘100产生-100，属于无有效剩余电量估计，不是负电量或无电压。
+
+万用表与飞控读数相差约0.10V（约0.8%），不是-100%的原因。可调电源本身无真实剩余电量，暂不擅设电池串数、容量或分压；若模拟3S可另行设置N_CELLS=3，得到模拟电压百分比；实际用电池时按真实串数/化学体系/容量配置。精确校准分压需要同时在飞控VBAT/GND端测量，再按现有分压乘实测电压/飞控电压校正。本次未改参数、未重启、未解锁，查询后释放串口。
+
+## 仅见红灯的初步核查（2026-11-03）
+
+用户报告只见红灯，未见绿蓝。文档/固件引脚一致：PC1红、PA0绿、PC0蓝，共阳低有效；led.c按低电平点亮，非CONFIG_ARCH_LEDS配置映射LED_BLUE=0至PC0、LED_RED=1至PC1、LED_GREEN=3至PA0。当前BOARD_OVERLOAD_LED=LED_RED、BOARD_ARMED_STATE_LED=LED_BLUE，未定义BOARD_ARMED_LED；没有把绿灯配置为常态状态指示。CONFIG_COMMON_LIGHT虽包含I2C RGB驱动，但板载三路GPIO没有对应的led_control订阅驱动，不能假设led_control命令能直接点亮这些GPIO。
+
+设备只读查询：led_control color1(红)、mode5(快闪)、priority0；commander Disarmed，Altitude，failsafe=no。该消息与commander飞行前检查未通过时的红色快闪规则一致，但尚未读取vehicle_status确认pre_flight_checks_pass。软件消息不等同物理GPIO实测，不能据消息或红灯现象判定绿蓝LED损坏。现有蓝灯按commander板级状态逻辑应闪烁，还需区分物理红灯是否独立电源灯，以及逐色测试。现有应用没有gpio或tests命令，test是NSH条件判断，并非LED硬件测试。暂未修改源码、未执行点灯命令、未改参数或重启；等待用户确认红灯常亮/闪烁及独立电源灯情况。
+
+### GPIO RGB 状态驱动补齐
+
+用户确认红灯闪烁。现有蓝灯legacy输出与用户观察颜色不符，不能以此确认物理颜色映射或硬件损坏。新增可选src/drivers/lights/rgbled_gpio驱动：按GPIO_nLED_RED/GREEN/BLUE低有效直接控制一个RGB灯，通过上游LedController处理led_control颜色、闪烁及优先级，不用PWM、不占定时器或DMA。板级启用驱动，rc.board_extras启动；删除BOARD_HAS_CONTROL_STATUS_LEDS/BOARD_OVERLOAD_LED/BOARD_ARMED_STATE_LED，以免commander legacy逻辑与RGB驱动抢同组GPIO。保留led.c初始化及启动阶段故障指示。普通GPIO只支持亮灭，不提供渐变亮度。通过led_control on -c red/green/blue测试并以led_control reset释放高优先级覆盖（具体reset命令以源码确认）。板卡/USB/电机/接收机/电池参数不变。仅应用云端编译；尚未烧录，尚未验证物理颜色。测试只改LED，不能为测试灯色而解锁飞控。

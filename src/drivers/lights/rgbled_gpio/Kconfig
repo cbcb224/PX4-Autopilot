@@ -1,0 +1,5 @@
+menuconfig DRIVERS_LIGHTS_RGBLED_GPIO
+	bool "rgbled_gpio"
+	default n
+	help
+		Drive one active-low RGB LED using board GPIO_nLED_RED/GREEN/BLUE.

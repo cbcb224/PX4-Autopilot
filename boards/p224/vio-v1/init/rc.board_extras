@@ -1,0 +1,3 @@
+#!/bin/sh
+# Consume commander's led_control state on the board's active-low RGB LED.
+rgbled_gpio start
