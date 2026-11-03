@@ -2254,3 +2254,9 @@ GitHub Actions #18 成功：https://github.com/cbcb224/PX4-Autopilot/actions/run
 ## SDMMC 5MHz 对照固件（2026-11-03）
 
 用户确认同卡可在其他飞控正常使用，并同意先做低速四线对照。板级board.h仅将IDMA路径的MMCXFR/SDXFR分频5改20，即PLL1Q200MHz/(2*20)=5MHz；初始化400kHz、四线总线、IDMA、DCACHE、GPIO/上拉/驱动强度均不变。原r18为20MHz，对照产物单独目录，不覆盖。为避免挂载失败触发上游rcS的mkfatfs自动格式化，本板应用defconfig设置CONFIG_NSH_DISABLE_MKFATFS=y，删除该命令；启动脚本可能仍输出格式化尝试，但命令不存在不会执行格式化。未修改通用rcS，未格式化或写卡，未自动烧录/重启。新固件启动时PX4本身仍可能尝试建目录/备份或日志，本测试工具只先查询已有文件；不能将整个固件宣称为只读挂载。保持其余功能配置，GitHub Actions编译，bootloader不变。对照结果只用于缩小原因，不能凭降速成功直接认定PCB干扰。
+
+### 5MHz 对照版交付
+
+Actions #19成功：https://github.com/cbcb224/PX4-Autopilot/actions/runs/41655766505 ，源码3e2c61c16ec382c77b922fc99052cc62ce9968ad，Build URI p224_vio-v1_default-r19-a1-3e2c61c1。目录P224-VIO-v1-固件/application-sd5mhz-r19；下载ZIP SHA256=31a1ca0bce3638da182d7da4e750a6939cc30ea4833698757a28750436fd43f2与云端一致。bin1502084字节，SHA256=2c39c3a308219f19f610016feeeabe5f07dfeb210225e8886fab5de3b1ffa705。
+
+已检查board_id60000、.px4解压image与bin相同、Build URI正确、大小在1792KiB范围内；ELF保留rgbled_gpio_main/crsf_rc_main/rc_input_main。与r18 ELF对比，cmd_mkfatfs符号由存在变为不存在，证实NSH格式化命令未编入。时钟依据已提交board.h分频20计算5MHz，尚未上板测量波形或验证卡读取效果。未本地编译、未自动烧录/重启、未主动写卡或修改设备参数。交付QGC用.px4应用文件，bootloader不更新；建议重要数据先备份，因为固件普通启动仍会自动尝试日志/备份写入，不能将此固件视为只读存储模式。待用户更新后先检查现卡挂载、目录和文件访问错误。
