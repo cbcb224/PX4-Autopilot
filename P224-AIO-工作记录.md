@@ -2272,3 +2272,9 @@ logger Running但Not logging，dataman worker未运行，启动缓冲已被datam
 ## 5MHz 单线对照固件（2026-11-03）
 
 用户明确要求尝试5MHz单线。在r19基础上只增加CONFIG_SDMMC1_WIDTH_D1_ONLY=y，board.h仅修正注释以避免误称四线；传输分频20（约5MHz）、初始化400kHz、IDMA、cache及格式化命令禁用保持。已查NuttX Kconfig和stm32_sdmmc.c：该选项令onebit=true并报告SDIO_CAPS_1BIT_ONLY，只配置D0、CK、CMD而不配置D1/D2/D3；选项名称虽含D1但含义为1-bit，不是DAT1。实际总线为PC12 CLK、PD2 CMD、PC8 DAT0。此为诊断应用，不能据单线成功直接认定虚焊；单线失败也不能排除公共线路或供电问题。通过Actions编译，不本地编译，不自动烧录。保留原r19供对照。
+
+### 5MHz 单线版交付
+
+Actions #20成功：https://github.com/cbcb224/PX4-Autopilot/actions/runs/41659995977 ，源码aada08a4c1ec6b37b8d801a0b2a3d4d4a5ef99bc，Build URI p224_vio-v1_default-r20-a1-aada08a4。目录P224-VIO-v1-固件/application-sd5mhz-1bit-r20；ZIP SHA256=fafa5de8a61677d1321218ae76ac6d6dee5459b816f5259a14f8696dcfedbedf与GitHub匹配，bin1502052字节，SHA256=80590be9b046c820e252450f2aa9f5a46841b51f6be6adc3186c4e491a82ae8a。
+
+已验证board_id60000、.px4解压image与bin一致、Build URI、应用大小边界、保留RGB和接收机驱动、ELF不含cmd_mkfatfs。单线选项依据固定源码配置及驱动语义核对，尚未上板验证。未本地编译、未自动烧录/重启或写卡。QGC仅更新应用.px4，bootloader不更新，继续使用同一张卡、断电插卡上电后检查；普通启动仍可能尝试日志/备份写入，非只读挂载，重要数据应保留备份。
