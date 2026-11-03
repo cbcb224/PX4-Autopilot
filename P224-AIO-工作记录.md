@@ -2198,3 +2198,9 @@ Bootloader Actions #16 成功：https://github.com/cbcb224/PX4-Autopilot/actions
 仅重编应用，bootloader及USB标识均无需改动。GitHub Actions编译，不本地编译，未操作电机。源码依据src/drivers/rc/crsf_rc/{Kconfig,module.yaml}与Tools/serial/generate_config.py的TEL3 index103映射。
 
 用户补充RC_PORT_CONFIG也不存在。补入CONFIG_DRIVERS_RC_INPUT=y，生成RC_PORT_CONFIG及RC_INPUT_PROTO；默认RC_PORT_CONFIG=0，本板无RC_SERIAL_PORT回退定义，因此通用rc_input不占用串口。当前ELRS继续使用专用crsf_rc，默认RC_CRSF_PRT_CFG=103。不要将两个参数同时指向TELEM3。两类驱动同时编入仅提供配置选择，不应同时读取同一UART。
+
+### 接收机驱动补齐编译交付
+
+应用Actions #17成功：https://github.com/cbcb224/PX4-Autopilot/actions/runs/41612326052 ，源码a9e6bf98b7c206e0925fa3e39162b99e29b68915，Build ID p224_vio-v1_default-r17-a1-a9e6bf98。下载目录P224-VIO-v1-固件/application-elrs-r17，ZIP SHA256=f7381d7737811d853d9b53f47aef3e75d0f8095afd22377e6a039b7927590533，与GitHub digest一致。应用bin1503480字节，SHA256=761455f7d2126334625cf8871921d4309fb91714c0dfe228c1ce75adc6e3f889。
+
+产物检查：bin中检出RC_PORT_CONFIG、RC_INPUT_PROTO、RC_CRSF_PRT_CFG、RC_CRSF_TEL_EN和本次Build ID；ELF符号表检出rc_input_main、crsf_rc_main，确认两驱动已编入；board_id60000、USB1B8C:0036保持，.px4解压image与bin逐字节一致。本机未编译、未烧录、未改设备参数。QGC选择本目录p224_vio-v1_default.px4即可更新应用，bootloader不用改。更新后检查RC_CRSF_PRT_CFG=103(TELEM3)，RC_PORT_CONFIG=0(Disabled)，重启应用后生效；ELRS端到端接收仍待实机验证。UART7 RX=PB3接接收机TX，UART7 TX=PA15接接收机RX，共地。
