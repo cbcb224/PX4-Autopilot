@@ -2136,3 +2136,16 @@ Windows COM53 的 DEVPKEY_Device_BusReportedDeviceDesc 实测为 vio-v1，说明
 
 用户反馈名称修改仍不能识别，澄清本次要求修改 USB VID/PID。重新读取官方 QGC v5.1.4 src/Comms/USBBoardInfo.json，确认 9900:17（十六进制 26AC:0011）对应 Pixhawk 类别，名称 PX4 FMU V2。应用与 bootloader 的 CDCACM_VENDORID/PRODUCTID 同步改为此组合，作为识别兼容性试验；该 USB 身份不是本自制板的正式分配。保留 microair / h743 aio 名称以及私有 board_id/BOARD_TYPE=60000，保留引脚、Flash 布局和其余功能。识别后仍只能选择本板配套自定义固件，不应据 USB 名称选择其他硬件的默认固件。此修改针对端口识别阶段，不保证解决后续 bootloader 握手问题。两份固件均由 GitHub Actions 编译，待用户烧录后实测。
 来源：https://github.com/mavlink/qgroundcontrol/blob/v5.1.4/src/Comms/USBBoardInfo.json 。
+
+### USB VID/PID 试验编译结果
+
+源码提交 8dfdf86ea7a587c25cd57cf36c50ae7ff747b6c7。
+应用 Actions #13 成功：https://github.com/cbcb224/PX4-Autopilot/actions/runs/41584640970 。
+Bootloader Actions #14 成功：https://github.com/cbcb224/PX4-Autopilot/actions/runs/41584644264 。
+
+下载 ZIP 的 SHA256 均与 GitHub artifact digest 匹配：应用 c1da91b8729cfe1944f7a69502f5e8f7447c58fc3b2d17f1498723e99b83abda，bootloader 1aaf5ecfed9578af9e3cf6ffc4758a7f37475570405a7d0ebce22b2feba5b118。
+两份二进制设备描述符均实测 VID=26AC、PID=0011；厂商/产品字符串检出 microair / h743 aio；.px4 board_id 均为60000，解压 image 与 .bin 逐字节匹配，Build ID 与本次任务吻合。
+- application-usbid-r13/p224_vio-v1_default.bin：1482928 字节，SHA256 25da905698db12f5153436750d56f8479b860a0ee7f8d0cb8593971d528469b8。
+- bootloader-usbid-r14/p224_vio-v1_bootloader.bin：42392 字节，SHA256 157d3cdcdabca419e959e110d3b83f30390cf8bcfb9f9d6bfac3d8b78aae1bea。
+
+应用烧录地址 0x08020000，bootloader 烧录地址 0x08000000；两份均需更新。未本地编译，未自动烧录或重启，未修改设备参数。更换 USB 身份后 Windows 可能重新分配 COM 号；实际 QGC 端口识别和升级握手待用户烧录验证。
