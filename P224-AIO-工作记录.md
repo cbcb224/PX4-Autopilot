@@ -602,3 +602,764 @@ nsh>
 - ZIP SHA256 `44d6805d3c0f3d3b37b78e47e35044e760e1a7b76fe2ff38eea44666ab48b845` 与 GitHub digest 一致；BIN SHA256 `802c0d35f977aaaae8582d3b4e6d21132208a49c594ec7a2c8054fbac190e0a9`。
 - 校验通过：board_id=60000，px4 image 与 bin 一致，镜像内构建标识和 v1.17.0 版本 tag 正确，reset vector 为 0x08020305。
 - 仍未自动烧录；新版需要用户更新应用后再检查磁力计自动启动和 ADC 内部温度采样。没有对电机/输出、参数值、机架配置执行更改。为诊断临时启动了 IST8310，其他状态读取命令均为只读。
+
+## 重刷 #10 后 COM53 复查（2026-11-02）
+
+仅执行状态读取，没有手动启动传感器、修改参数或触发输出。
+
+```text
+
+### ver all
+
+NuttShell (NSH) NuttX-12.12.0
+nsh> ver all
+HW arch: P224_VIO_V1
+PX4 git-hash: af0c6eb375d332ce1efe7328b67417e26ec926ee
+PX4 version: 1.17.0 0 (17891328)
+PX4 git-branch: codex/px4-v1.17.0
+OS: NuttX
+OS version: Release 12.12.0 (202113279)
+OS git-hash: fb2fadf6f599c1406f052db013efd00a2518e72c
+Build datetime: Nov  2 2026 14:10:11
+Build uri: p224_vio-v1_default-r10-a1-af0c6eb3
+Build variant: default
+Toolchain: GNU GCC, 13.2.1 20231009
+PX4GUID: 000600000000363335343034510d00470038
+MCU: STM32H7[4|5]xxx, rev. V
+nsh>
+
+### ist8310 status
+ist8310 status
+INFO  [SPI_I2C] Running on I2C Bus 4, Address 0x0E
+ist8310: reset: 1 events
+ist8310: bad register: 0 events
+ist8310: bad transfer: 0 events
+nsh>
+
+### listener sensor_mag -n 1
+listener sensor_mag -n 1
+
+TOPIC: sensor_mag
+ sensor_mag
+    timestamp: 63117040 (0.007980 seconds ago)
+    timestamp_sample: 63116092 (948 us before timestamp)
+    device_id: 396833 (Type: 0x06, I2C:4 (0x0E))
+    x: -0.02651
+    y: -0.52121
+    z: 0.16060
+    temperature: nan
+    error_count: 0
+nsh>
+
+### board_adc status
+board_adc status
+INFO  [board_adc] running
+nsh>
+
+### listener adc_report -n 1
+listener adc_report -n 1
+
+TOPIC: adc_report
+ adc_report
+    timestamp: 66746789 (0.006468 seconds ago)
+    device_id: 4294967295 (Type: 0xFF, UNKNOWN:31 (0xFF))
+    raw_data: [0, 0, 10112, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    resolution: 65536
+    v_ref: 3.30000
+    channel_id: [4, 18, 20, -1, -1, -1, -1, -1, -1, -1, -1, -1]
+
+nsh>
+
+### bmi088 -A status
+bmi088 -A status
+INFO  [SPI_I2C] Running on SPI Bus 1
+INFO  [bmi088] FIFO empty interval: 1250 us (800.0 Hz)
+bmi088_accel: bad register: 0 events
+bmi088_accel: bad transfer: 0 events
+bmi088_accel: FIFO empty: 0 events
+bmi088_accel: FIFO overflow: 0 events
+bmi088_accel: FIFO reset: 1 events
+nsh>
+
+### bmi088 -G status
+bmi088 -G status
+INFO  [SPI_I2C] Running on SPI Bus 1
+INFO  [bmi088] FIFO empty interval: 1500 us (666.7 Hz)
+bmi088_gyro: bad register: 0 events
+bmi088_gyro: bad transfer: 0 events
+bmi088_gyro: FIFO empty: 0 events
+bmi088_gyro: FIFO overflow: 0 events
+bmi088_gyro: FIFO reset: 1 events
+nsh>
+
+### icm42688p status
+icm42688p status
+INFO  [SPI_I2C] Running on SPI Bus 2
+INFO  [icm42688p] FIFO empty interval: 1250 us (800.0 Hz)
+INFO  [icm42688p] Clock input: disabled
+icm42688p: bad register: 0 events
+icm42688p: bad transfer: 0 events
+icm42688p: FIFO empty: 0 events
+icm42688p: FIFO overflow: 0 events
+icm42688p: FIFO reset: 1 events
+nsh>
+
+### dps310 status
+dps310 status
+INFO  [SPI_I2C] Running on I2C Bus 4, Address 0x76
+dps310: read: 4665 events, 3060915us elapsed, 656.14us avg, min 402us max 1380us 391.795us rms
+dps310: comm errors: 0 events
+nsh>
+
+### commander status
+commander status
+INFO  [commander] Disarmed
+INFO  [commander] navigation mode: Hold
+INFO  [commander] user intended navigation mode: Hold
+INFO  [commander] in failsafe: no
+commander: cycle: 6717 events, 470473us elapsed, 70.04us avg, min 37us max 1033us 56.988us rms
+commander: preflight check: 711 events, 113556us elapsed, 159.71us avg, min 105us max 673us 43.269us rms
+nsh>
+
+### dmesg
+dmesg
+HW arch: P224_VIO_V1
+PX4 git-hash: af0c6eb375d332ce1efe7328b67417e26ec926ee
+PX4 version: 1.17.0 0 (17891328)
+PX4 git-branch: codex/px4-v1.17.0
+OS: NuttX
+OS version: Release 12.12.0 (202113279)
+OS git-hash: fb2fadf6f599c1406f052db013efd00a2518e72c
+Build datetime: Nov  2 2026 14:10:11
+Build uri: p224_vio-v1_default-r10-a1-af0c6eb3
+Build variant: default
+Toolchain: GNU GCC, 13.2.1 20231009
+PX4GUID: 000600000000363335343034510d00470038
+MCU: STM32H7[4|5]xxx, rev. V
+ERROR [bsondump] open '/fs/mtd_caldata' failed (2)
+New /fs/mtd_caldata size is:
+ERROR [bsondump] open '/fs/mtd_caldata' failed (2)
+INFO  [param] selected parameter backup file /fs/microsd/parameters_backup.bson
+Board architecture defaults: /etc/init.d/rc.board_arch_defaults
+Board defaults: /etc/init.d/rc.board_defaults
+Loading airframe: /etc/init.d/airframes/4001_quad_x
+INFO  [dataman] data manager file '/fs/microsd/dataman' size is 128528 bytes
+Board sensors: /etc/init.d/rc.board_sensors
+bmi088_accel #0 on SPI bus 1 rotation 2
+bmi088_gyro #0 on SPI bus 1 rotation 2
+icm42688p #0 on SPI bus 2
+ist8310 #0 on I2C bus 4 address 0xE
+ERROR [dps310] Product_ID mismatch
+ERROR [SPI_I2C] dps310: no instance started (no device on bus?)
+dps310 #0 on I2C bus 4 address 0x76
+ekf2 [493:237]
+INFO  [arch_dshot] Bidirectional DShot enabled, only one timer will be used
+INFO  [arch_dshot] Allocated DMA UP Timer Index 0
+INFO  [arch_dshot] Freed DMA UP Timer Index 0
+ERROR [parameters] get: param 65535 invalid
+ERROR [parameters] get: param 65535 invalid
+ERROR [parameters] get: param 65535 invalid
+Starting MAVLink on /dev/ttyS0
+INFO  [mavlink] mode: Normal, data rate: 1200 B/s on /dev/ttyS0 @ 57600B
+INFO  [cdcacm_autostart] Starting CDC/ACM autostart
+INFO  [logger] logger started (mode=all)
+
+NuttShell (NSH) NuttX-12.12.0
+nsh> sercon: Registering CDC/ACM serial driver
+sercon: Successfully registered the CDC/ACM serial driver
+ERROR [tinybson] file write error -1, errno:22 (Invalid argument)
+ERROR [tinybson] killed: file write error
+ERROR [tinybson] killed: write error on BSON_INT32
+ERROR [parameters] BSON append failed for 'CAL_GYRO0_ID'
+ERROR [parameters] backup parameter export to /fs/microsd/parameters_backup.bson failed (-1)
+INFO  [cdcacm_autostart] Starting mavlink on /dev/ttyACM0 (SYS_USB_AUTO=2)
+INFO  [mavlink] mode: Onboard, data rate: 100000 B/s on /dev/ttyACM0 @ 2000000B
+INFO  [mavlink] Setting system clock from SYSTEM_TIME sent by 255/190
+ERROR [dataman] file read lseek failed 22
+ERROR [dataman] file read lseek failed 22
+ERROR [dataman_client] readSync failed! status=3, item=5, index=0, length=8
+INFO  [commander] Connection to ground station lost
+INFO  [mavlink] Starting mavlink shell
+nsh>
+
+```
+
+### 重刷后存储与传感器补查
+
+```text
+
+### mount
+
+NuttShell (NSH) NuttX-12.12.0
+nsh> mount
+  /bin type binfs
+  /etc type cromfs
+  /fs/microsd type vfat
+  /proc type procfs
+nsh>
+
+### df
+df
+  Block    Number
+  Size     Blocks       Used   Available Mounted on
+     0          0          0           0 /bin
+   512        293        293           0 /etc
+  4096     122636         43      122593 /fs/microsd
+     0          0          0           0 /proc
+nsh>
+
+### ls -l /fs/microsd
+ls -l /fs/microsd
+/fs/microsd:
+ -rw-rw-rw-    5471 param_import_fail.txt
+ -rw-rw-rw-  128528 dataman
+ drw-rw-rw-       0 log/
+ drw-rw-rw-       0 ufw/
+ -rw-rw-rw-       0 parameters_backup.bson
+ drw-rw-rw-       0 uavcan.db/
+ drw-rw-rw-       0 mavlink/
+ -rw-rw-rw-     349 params
+nsh>
+
+### param status
+param status
+INFO  [parameters] summary: 920/1537 (used/total)
+INFO  [parameters] storage array: 30/1537 elements (256 bytes total)
+INFO  [parameters] storage array (custom defaults): 24/1537 elements (256 bytes total)
+INFO  [parameters] auto save: on
+INFO  [parameters] last auto save: 112.553 seconds ago
+param: export: 1 events, 197us elapsed, 197.00us avg, min 197us max 197us   nanus rms
+param: find: 19012 events
+param: get: 700773 events
+param: set: 30 events, 246us elapsed, 8.20us avg, min 6us max 12us 1.375us rms
+nsh>
+
+### param show SYS_AUTOSTART
+param show SYS_AUTOSTART
+Symbols: x = used, + = saved, * = unsaved
+x + SYS_AUTOSTART [883,1245] : 4001
+
+ 920/1537 parameters used.
+nsh>
+
+### logger status
+logger status
+INFO  [logger] Running in mode: all
+INFO  [logger] Number of subscriptions: 178 (5696 bytes)
+INFO  [logger] Not logging
+nsh>
+
+### listener system_power -n 1
+listener system_power -n 1
+
+TOPIC: system_power
+ system_power
+    timestamp: 119546795 (0.003538 seconds ago)
+    voltage5v_v: 0.00000
+    voltage_payload_v: 0.00000
+    sensors3v3: [0.00000, 0.00000, 0.00000, 0.00000]
+    sensors3v3_valid: 0
+    usb_connected: 1
+    brick_valid: 1
+    usb_valid: 1
+    servo_valid: 1
+    periph_5v_oc: 0
+    hipower_5v_oc: 0
+    comp_5v_valid: 0
+    can1_gps1_5v_valid: 0
+    payload_v_valid: 0
+
+nsh>
+
+### listener sensor_accel -n 1
+listener sensor_accel -n 1
+
+TOPIC: sensor_accel 2 instances
+
+Instance 0:
+ sensor_accel
+    timestamp: 121185662 (0.000660 seconds ago)
+    timestamp_sample: 121184982 (680 us before timestamp)
+    device_id: 6946826 (Type: 0x6A, SPI:1 (0x00))
+    x: -0.10235
+    y: -0.22804
+    z: -9.79887
+    temperature: 34.00000
+    error_count: 0
+    clip_counter: [0, 0, 0]
+    samples: 2
+
+
+Instance 1:
+ sensor_accel
+    timestamp: 121200984 (0.000329 seconds ago)
+    timestamp_sample: 121200696 (288 us before timestamp)
+    device_id: 2490386 (Type: 0x26, SPI:2 (0x00))
+    x: -0.08068
+    y: -0.32872
+    z: -9.89787
+    temperature: 38.03140
+    error_count: 0
+    clip_counter: [0, 0, 0]
+    samples: 10
+
+nsh>
+
+### sensors status
+sensors status
+selected gyro: 2490386 (1)
+validator: best: 0, prev best: 0, failsafe: NO (0 events)
+sensor #0, prio: 50, state: OK
+	val:   0.0002, lp:  -0.0013 mean dev:  -0.0000 RMS:   0.0979 conf:   1.0000
+	val:   0.0088, lp:   0.0058 mean dev:   0.0000 RMS:   0.0960 conf:   1.0000
+	val:  -0.0023, lp:   0.0004 mean dev:   0.0000 RMS:   0.0914 conf:   1.0000
+sensor #1, prio: 50, state: OK
+	val:  -0.0013, lp:  -0.0009 mean dev:   0.0001 RMS:   0.0922 conf:   1.0000
+	val:   0.0013, lp:   0.0015 mean dev:   0.0000 RMS:   0.0948 conf:   1.0000
+	val:   0.0011, lp:   0.0010 mean dev:  -0.0000 RMS:   0.0856 conf:   1.0000
+
+selected accel: 2490386 (1)
+validator: best: 0, prev best: 0, failsafe: NO (0 events)
+sensor #0, prio: 50, state: OK
+	val:  -0.1246, lp:  -0.1152 mean dev:  -0.0005 RMS:   0.2592 conf:   1.0000
+	val:  -0.2632, lp:  -0.2415 mean dev:  -0.0005 RMS:   0.1980 conf:   1.0000
+	val:  -9.8262, lp:  -9.8294 mean dev:  -0.0295 RMS:   0.3512 conf:   1.0000
+sensor #1, prio: 50, state: OK
+	val:  -0.0879, lp:  -0.0890 mean dev:  -0.0001 RMS:   0.2426 conf:   1.0000
+	val:  -0.3282, lp:  -0.3278 mean dev:  -0.0005 RMS:   0.1849 conf:   1.0000
+	val:  -9.5351, lp:  -9.5373 mean dev:  -0.0199 RMS:   0.3023 conf:   1.0000
+
+[vehicle_magnetometer] selected MAG: 396833 (0)
+validator: best: 0, prev best: 0, failsafe: NO (0 events)
+sensor #0, prio: 50, state: OK
+	val:   0.2801, lp:   0.2805 mean dev:   0.0018 RMS:   0.0137 conf:   1.0000
+	val:  -0.2017, lp:  -0.2026 mean dev:   0.0016 RMS:   0.0126 conf:   1.0000
+	val:   0.1950, lp:   0.1934 mean dev:  -0.0025 RMS:   0.0148 conf:   1.0000
+MAG 396833 EN: 1, offset: [-0.194 -0.192 -0.166], scale: [1.000 1.000 1.000], Internal
+
+[vehicle_air_data] selected BARO: 6845985 (0)
+validator: best: 0, prev best: 0, failsafe: NO (0 events)
+sensor #0, prio: 50, state: OK
+	val: 102952.3203, lp: 102953.2109 mean dev: -18.7881 RMS:  61.8554 conf:   1.0000
+	val:  64.9746, lp:  64.9606 mean dev:  -1.8986 RMS:   6.0579 conf:   1.0000
+	val: -134.6103, lp: -134.6777 mean dev:   1.5343 RMS:   5.0764 conf:   1.0000
+BARO 6845985 EN: 1, offset: 0.000, Internal
+
+Airspeed status:
+	no data
+
+[vehicle_acceleration] selected sensor: 2490386, rate: 799.9 Hz, estimated bias: [-0.2571 0.3648 0.2574]
+ACC 2490386 EN: 1, offset: [0.000 0.014 -0.346], scale: [1.000 1.000 1.000], Internal
+
+[vehicle_angular_velocity] selected sensor: 2490386, rate: 8042.8 Hz FIFO, estimated bias: [-0.00158 0.00084 -0.00199]
+GYRO 2490386 EN: 1, offset: [0.035 0.004 -0.015], Internal
+vehicle_angular_velocity: gyro filter: 97347 events, 1527106us elapsed, 15.69us avg, min 11us max 203us 1.275us rms
+vehicle_angular_velocity: gyro filter reset: 3 events
+vehicle_angular_velocity: gyro selection changed: 3 events
+
+[vehicle_gps_position] selected GPS: 0
+
+
+[vehicle_imu] 0 - Accel: 6946826, interval: 1250.0 us (SD 95.9 us), Gyro: 6684682, interval: 1500.0 us (SD 114.6 us)
+vehicle_imu: accel data gap: 1 events
+vehicle_imu: gyro data gap: 1 events
+ACC 6946826 EN: 1, offset: [-0.003 0.014 0.054], scale: [1.000 1.000 1.000], Internal
+GYRO 6684682 EN: 1, offset: [0.003 -0.002 -0.002], Internal
+
+[vehicle_imu] 1 - Accel: 2490386, interval: 1250.0 us (SD 30.8 us), Gyro: 2490386, interval: 1250.0 us (SD 30.8 us)
+vehicle_imu: accel data gap: 1 events
+vehicle_imu: gyro data gap: 1 events
+ACC 2490386 EN: 1, offset: [0.000 0.014 -0.346], scale: [1.000 1.000 1.000], Internal
+GYRO 2490386 EN: 1, offset: [0.035 0.004 -0.015], Internal
+nsh>
+
+```
+
+### 重刷 #10 后复查结论
+
+- 运行版本确认：PX4 1.17.0，commit af0c6eb375，Build URI p224_vio-v1_default-r10-a1-af0c6eb3。
+- 两项修正已在实机验证：IST8310 自动在 I2C4/0x0e 启动，sensor_mag error_count=0；ADC 内部温度通道 20 raw_data=10112，非此前 -1，完整启动日志未见 board_adc sample timeout。
+- BMI088 加计/陀螺、ICM42688P bad register/transfer/FIFO overflow 均 0；DPS310 通信错误 0；sensors validator 中两组 IMU、磁力计、气压计均 OK。首次启动 FIFO reset=1 与 vehicle_imu gap=1 未见持续增长证据，不能当持续故障。
+- 启动先试 DPS310 0x77 报 Product_ID mismatch，随后 0x76 成功，属于当前地址回退探测过程，不能当实际运行的气压计掉线。
+- /fs/mtd_caldata 不存在由上游 rcS 无条件 bsondump 探测引起；本板使用 Flash 参数而未配置该 MTD，不等同于本板参数 Flash 损坏。
+- 仍有真实存储异常：参数备份导出到 SD 报 errno 22，parameters_backup.bson 为 0 B；dataman lseek 亦报 errno 22。SD 挂载为 vfat，容量约 479 MiB，空闲 122593/122636 个 4096 B 块，不是空间耗尽。只读检查不能区分文件系统、卡或 SDMMC 驱动/硬件原因，暂不判定 SD 卡正常。
+- 启动还记录三条 parameters get: param 65535 invalid，尚未定位调用来源。未为此修改参数或将其断言为存储损坏。
+- SYS_AUTOSTART=4001 等已保存设置仍可读取，但不代替完整 Flash 参数断电持久性测试。logger 进程运行，当前未记录（Disarmed）。
+- 本次未解锁、未启动电机、未改参数、未格式化或删除 SD 文件；串口检查已结束并释放 COM53。建议先备份/检查 SD 文件系统或换一张已知正常的 FAT32 卡进行对照复查，避免现在依赖日志及 SD 参数备份。
+
+## SD 存储继续排查（2026-11-03）
+
+```text
+
+### ver uri
+
+NuttShell (NSH) NuttX-12.12.0
+nsh> ver uri
+Build uri: p224_vio-v1_default-r10-a1-af0c6eb3
+nsh>
+
+### ls /dev
+ls /dev
+/dev:
+ console
+ console_buf
+ led0
+ mmcsd0
+ null
+ ttyACM0
+ ttyS0
+ ttyS1
+ ttyS2
+ ttyS3
+nsh>
+
+### dmesg
+dmesg
+HW arch: P224_VIO_V1
+PX4 git-hash: af0c6eb375d332ce1efe7328b67417e26ec926ee
+PX4 version: 1.17.0 0 (17891328)
+PX4 git-branch: codex/px4-v1.17.0
+OS: NuttX
+OS version: Release 12.12.0 (202113279)
+OS git-hash: fb2fadf6f599c1406f052db013efd00a2518e72c
+Build datetime: Nov  2 2026 14:10:11
+Build uri: p224_vio-v1_default-r10-a1-af0c6eb3
+Build variant: default
+Toolchain: GNU GCC, 13.2.1 20231009
+PX4GUID: 000600000000363335343034510d00470038
+MCU: STM32H7[4|5]xxx, rev. V
+INFO [init] formatting /dev/mmcsd0
+ERROR [init] format failed
+ERROR [bsondump] open '/fs/mtd_caldata' failed (2)
+New /fs/mtd_caldata size is:
+ERROR [bsondump] open '/fs/mtd_caldata' failed (2)
+Board architecture defaults: /etc/init.d/rc.board_arch_defaults
+Board defaults: /etc/init.d/rc.board_defaults
+Loading airframe: /etc/init.d/airframes/4001_quad_x
+WARN  [dataman] Could not open data manager file /fs/microsd/dataman
+ERROR [dataman] dataman start failed
+Board sensors: /etc/init.d/rc.board_sensors
+bmi088_accel #0 on SPI bus 1 rotation 2
+bmi088_gyro #0 on SPI bus 1 rotation 2
+icm42688p #0 on SPI bus 2
+ist8310 #0 on I2C bus 4 address 0xE
+ERROR [dps310] Product_ID mismatch
+ERROR [SPI_I2C] dps310: no instance started (no device on bus?)
+dps310 #0 on I2C bus 4 address 0x76
+ekf2 [447:237]
+INFO  [arch_dshot] Bidirectional DShot enabled, only one timer will be used
+INFO  [arch_dshot] Allocated DMA UP Timer Index 0
+INFO  [arch_dshot] Freed DMA UP Timer Index 0
+ERROR [parameters] get: param 65535 invalid
+ERROR [parameters] get: param 65535 invalid
+ERROR [parameters] get: param 65535 invalid
+Starting MAVLink on /dev/ttyS0
+INFO  [cdcacm_autostart] Starting CDC/ACM autostart
+INFO  [logger] logger started (mode=all)
+INFO  [logger] log root dir created: /fs/microsd/log
+
+NuttShell (NSH) NuttX-12.12.0
+nsh> sercon: Registering CDC/ACM serial driver
+sercon: Successfully registered the CDC/ACM serial driver
+ERROR [dataman_client] timeout after 1000 ms!
+ERROR [dataman_client] Failed to get client ID!
+ERROR [dataman_client] timeout after 1000 ms!
+ERROR [dataman_client] Failed to get client ID!
+INFO  [cdcacm_autostart] Starting mavlink on /dev/ttyACM0 (SYS_USB_AUTO=2)
+WARN  [health_and_arming_checks] Preflight Fail: Missing FMU SD Card
+ERROR [dataman_client] timeout after 1000 ms!
+ERROR [dataman_client] Failed to get client ID!
+ERROR [dataman_client] timeout after 1000 ms!
+ERROR [dataman_client] Failed to get client ID!
+INFO  [mavlink] mode: Onboard, data rate: 100000 B/s on /dev/ttyACM0 @ 2000000B
+ERROR [dataman_client] timeout after 1000 ms!
+ERROR [dataman_client] Failed to get client ID!
+WARN  [health_and_arming_checks] Preflight Fail: Attitude failure (roll)
+WARN  [health_and_arming_checks] Preflight Fail: Missing FMU SD Card
+ERROR [dataman_client] timeout after 1000 ms!
+ERROR [dataman_client] Failed to get client ID!
+ERROR [dataman_client] timeout after 1000 ms!
+ERROR [dataman_client] Failed to get client ID!
+ERROR [dataman_client] timeout after 5000 ms!
+WARN  [mavlink] offboard mission init failed
+INFO  [mavlink] mode: Normal, data rate: 1200 B/s on /dev/ttyS0 @ 57600B
+INFO  [mavlink] Starting mavlink shell
+nsh>
+
+### param status
+param status
+INFO  [parameters] summary: 920/1537 (used/total)
+INFO  [parameters] storage array: 30/1537 elements (256 bytes total)
+INFO  [parameters] storage array (custom defaults): 24/1537 elements (256 bytes total)
+INFO  [parameters] auto save: on
+INFO  [parameters] last auto save: 100.163 seconds ago
+param: export: 1 events, 605us elapsed, 605.00us avg, min 605us max 605us   nanus rms
+param: find: 16764 events
+param: get: 630964 events
+param: set: 30 events, 248us elapsed, 8.27us avg, min 6us max 12us 1.461us rms
+nsh>
+
+### ls -l /fs/microsd
+ls -l /fs/microsd
+/fs/microsd:
+ dr--r--r--       0 log/
+nsh>
+
+```
+
+用户确认上一次未插 SD 卡，故上次启动挂载失败不用于判断有卡时状态；用户插卡后恢复检查。
+
+## 插回 SD 后复查（2026-11-03）
+
+```text
+
+### ver uri
+
+NuttShell (NSH) NuttX-12.12.0
+nsh> ver uri
+Build uri: p224_vio-v1_default-r10-a1-af0c6eb3
+nsh>
+
+### mount
+mount
+  /bin type binfs
+  /etc type cromfs
+  /fs/microsd type vfat
+  /proc type procfs
+nsh>
+
+### df
+df
+  Block    Number
+  Size     Blocks       Used   Available Mounted on
+     0          0          0           0 /bin
+   512        293        293           0 /etc
+  4096     122636         43      122593 /fs/microsd
+     0          0          0           0 /proc
+nsh>
+
+### ls -l /fs/microsd
+ls -l /fs/microsd
+/fs/microsd:
+ -rw-rw-rw-    5471 param_import_fail.txt
+ -rw-rw-rw-  128528 dataman
+ drw-rw-rw-       0 log/
+ drw-rw-rw-       0 ufw/
+ -rw-rw-rw-       0 parameters_backup.bson
+ drw-rw-rw-       0 uavcan.db/
+ drw-rw-rw-       0 mavlink/
+ -rw-rw-rw-     349 params
+nsh>
+
+### param status
+param status
+INFO  [parameters] summary: 920/1537 (used/total)
+INFO  [parameters] storage array: 30/1537 elements (256 bytes total)
+INFO  [parameters] storage array (custom defaults): 24/1537 elements (256 bytes total)
+INFO  [parameters] auto save: on
+INFO  [parameters] last auto save: 22.949 seconds ago
+param: export: 1 events, 217us elapsed, 217.00us avg, min 217us max 217us   infus rms
+param: find: 5235 events
+param: get: 146341 events
+param: set: 30 events, 248us elapsed, 8.27us avg, min 6us max 11us 1.311us rms
+nsh>
+
+### dataman status
+dataman status
+INFO  [dataman] Writes   0
+INFO  [dataman] Reads    5
+INFO  [dataman] Clears   0
+dataman: read: 5 events, 7133us elapsed, 1426.60us avg, min 812us max 2775us 874.445us rms
+dataman: write: 0 events, 0us elapsed, 0.00us avg, min 0us max 0us 0.000us rms
+nsh>
+
+### logger status
+logger status
+INFO  [logger] Running in mode: all
+INFO  [logger] Number of subscriptions: 178 (5696 bytes)
+INFO  [logger] Not logging
+nsh>
+
+### dmesg
+dmesg
+HW arch: P224_VIO_V1
+PX4 git-hash: af0c6eb375d332ce1efe7328b67417e26ec926ee
+PX4 version: 1.17.0 0 (17891328)
+PX4 git-branch: codex/px4-v1.17.0
+OS: NuttX
+OS version: Release 12.12.0 (202113279)
+OS git-hash: fb2fadf6f599c1406f052db013efd00a2518e72c
+Build datetime: Nov  2 2026 14:10:11
+Build uri: p224_vio-v1_default-r10-a1-af0c6eb3
+Build variant: default
+Toolchain: GNU GCC, 13.2.1 20231009
+PX4GUID: 000600000000363335343034510d00470038
+MCU: STM32H7[4|5]xxx, rev. V
+ERROR [bsondump] open '/fs/mtd_caldata' failed (2)
+New /fs/mtd_caldata size is:
+ERROR [bsondump] open '/fs/mtd_caldata' failed (2)
+INFO  [param] selected parameter backup file /fs/microsd/parameters_backup.bson
+Board architecture defaults: /etc/init.d/rc.board_arch_defaults
+Board defaults: /etc/init.d/rc.board_defaults
+Loading airframe: /etc/init.d/airframes/4001_quad_x
+INFO  [dataman] data manager file '/fs/microsd/dataman' size is 128528 bytes
+Board sensors: /etc/init.d/rc.board_sensors
+bmi088_accel #0 on SPI bus 1 rotation 2
+bmi088_gyro #0 on SPI bus 1 rotation 2
+icm42688p #0 on SPI bus 2
+ist8310 #0 on I2C bus 4 address 0xE
+ERROR [dps310] Product_ID mismatch
+ERROR [SPI_I2C] dps310: no instance started (no device on bus?)
+dps310 #0 on I2C bus 4 address 0x76
+ekf2 [493:237]
+INFO  [arch_dshot] Bidirectional DShot enabled, only one timer will be used
+INFO  [arch_dshot] Allocated DMA UP Timer Index 0
+INFO  [arch_dshot] Freed DMA UP Timer Index 0
+ERROR [parameters] get: param 65535 invalid
+ERROR [parameters] get: param 65535 invalid
+ERROR [parameters] get: param 65535 invalid
+Starting MAVLink on /dev/ttyS0
+INFO  [mavlink] mode: Normal, data rate: 1200 B/s on /dev/ttyS0 @ 57600B
+INFO  [cdcacm_autostart] Starting CDC/ACM autostart
+INFO  [logger] logger started (mode=all)
+
+NuttShell (NSH) NuttX-12.12.0
+nsh> sercon: Registering CDC/ACM serial driver
+sercon: Successfully registered the CDC/ACM serial driver
+ERROR [tinybson] file write error -1, errno:22 (Invalid argument)
+ERROR [tinybson] killed: file write error
+ERROR [tinybson] killed: write error on BSON_INT32
+ERROR [parameters] BSON append failed for 'CAL_GYRO0_ID'
+ERROR [parameters] backup parameter export to /fs/microsd/parameters_backup.bson failed (-1)
+INFO  [cdcacm_autostart] Starting mavlink on /dev/ttyACM0 (SYS_USB_AUTO=2)
+INFO  [mavlink] mode: Onboard, data rate: 100000 B/s on /dev/ttyACM0 @ 2000000B
+WARN  [health_and_arming_checks] Preflight Fail: Attitude failure (roll)
+INFO  [mavlink] Starting mavlink shell
+nsh>
+
+```
+
+### 独立新文件读写诊断
+
+只在确认路径不存在后创建两份诊断文件，不覆盖旧参数备份、不改参数值。
+
+```text
+
+### ls /fs/microsd/p224_diag_20261103.txt
+
+NuttShell (NSH) NuttX-12.12.0
+nsh> ls /fs/microsd/p224_diag_20261103.txt
+nsh: ls: stat failed: No such file or directory
+nsh>
+
+### ls /fs/microsd/p224_diag_20261103.bson
+ls /fs/microsd/p224_diag_20261103.bson
+nsh: ls: stat failed: No such file or directory
+nsh>
+
+### echo P224_SD_DIAGNOSTIC_20261103 > /fs/microsd/p224_diag_20261103.txt
+echo P224_SD_DIAGNOSTIC_20261103 > /fs/microsd/p224_diag_20261103.txt
+nsh>
+
+### cat /fs/microsd/p224_diag_20261103.txt
+cat /fs/microsd/p224_diag_20261103.txt
+nsh: cat: read failed: Invalid argument
+nsh>
+
+### param export /fs/microsd/p224_diag_20261103.bson
+param export /fs/microsd/p224_diag_20261103.bson
+Usage: param <command> [arguments...]
+ Commands:
+
+   load          Load params from a file (overwrite all)
+     [<file>   ] File name (use default if not given)
+
+   import        Import params from a file
+     [<file>   ] File name (use default if not given)
+
+   save          Save params to a file
+     [<file>   ] File name (use default if not given)
+
+   select        Select default file
+     [<file>   ] File name
+
+   select-backup Select default file
+     [<file>   ] File name
+
+   show          Show parameter values
+     [-a]        Show all parameters (not just used)
+     [-c]        Show only changed params (unused too)
+     [-q]        quiet mode, print only param value (name needs to be exact)
+     [<filter> ] Filter by param name (wildcard at end allowed, eg. sys_*)
+
+   show-for-airframe Show changed params for airframe config
+
+   status        Print status of parameter system
+
+   set           Set parameter to a value
+     <param_name> <value> Parameter name and value to set
+     [fail     ] If provided, let the command fail if param is not found
+
+   set-default   Set parameter default to a value
+     [-s]        If provided, silent errors if parameter doesn't exists
+     <param_name> <value> Parameter name and value to set
+     [fail     ] If provided, let the command fail if param is not found
+
+   compare       Compare a param with a value. Command will succeed if equal
+     [-s]        If provided, silent errors if parameter doesn't exists
+     <param_name> <value> Parameter name and value to compare
+
+   greater       Compare a param with a value. Command will succeed if param is greater than the value
+     [-s]        If provided, silent errors if parameter doesn't exists
+     <param_name> <value> Parameter name and value to compare
+     <param_name> <value> Parameter name and value to compare
+
+   touch         Mark a parameter as used
+     [<param_name1> [<param_name2>]] Parameter name (one or more)
+
+   reset         Reset only specified params to default
+     [<param1> [<param2>]] Parameter names to reset (wildcard at end allowed)
+
+   reset_all     Reset all params to default
+     [<exclude1> [<exclude2>]] Do not reset matching params (wildcard at end allowed)
+
+   index         Show param for a given index
+     <index>     Index: an integer >= 0
+
+   index_used    Show used param for a given index
+     <index>     Index: an integer >= 0
+
+   find          Show index of a param
+     <param>     param name
+nsh>
+
+### ls -l /fs/microsd
+ls -l /fs/microsd
+/fs/microsd:
+ -rw-rw-rw-    5471 param_import_fail.txt
+ -rw-rw-rw-  128528 dataman
+ drw-rw-rw-       0 log/
+ drw-rw-rw-       0 ufw/
+ -rw-rw-rw-       0 parameters_backup.bson
+ drw-rw-rw-       0 uavcan.db/
+ drw-rw-rw-       0 mavlink/
+ -rw-rw-rw-     349 params
+ -rw-rw-rw-       0 p224_diag_20261103.txt
+nsh>
+
+### bsondump docsize /fs/microsd/p224_diag_20261103.bson
+bsondump docsize /fs/microsd/p224_diag_20261103.bson
+ERROR [bsondump] open '/fs/microsd/p224_diag_20261103.bson' failed (2)
+nsh>
+
+```
+
+### 插卡后 SD 诊断结论（2026-11-03）
+
+- 用户确认上一轮无卡；插回后 vfat 正常挂载，dataman 已启动并完成 5 次读取，当前启动未复现 lseek 错误。
+- 参数备份仍为 0 B，自动备份写入 errno 22 持续存在，空间充足。
+- 为区分原备份文件问题，在确认不存在后创建 p224_diag_20261103.txt，echo 未报错，但立即 cat 报 read failed: Invalid argument。说明异常不局限于原 parameters_backup.bson；不能认定 SD 可正常读写。
+- 尝试 param export 仅返回帮助，当前 CLI 不支持该命令，因此未创建 BSON 诊断文件，未导出参数。没有执行 param save、改参数、格式化或删除原文件。卡上保留上述新增文本诊断文件。
+- 当前证据倾向文件系统/簇链或底层 SD 读写异常，但不足以区分卡损坏与固件 SDMMC 路径问题。建议先断电取卡，经读卡器备份并只读检查文件系统，或换已知正常卡对照；未授权修复前不运行 chkdsk /f 或格式化。
+- 不建议通过飞控反复重启排查此卡：上游 rcS 在块设备存在但挂载失败时会自动尝试 mkfatfs，源码已确认。无卡时本板无检测脚也会声明存在块设备。
+- COM53 已释放。尚未进行飞行/电机输出验证。
