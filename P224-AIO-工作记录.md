@@ -2180,3 +2180,21 @@ Bootloader Actions #16 成功：https://github.com/cbcb224/PX4-Autopilot/actions
 - dshot：前四路Outputs used=0xf，Bidirectional DShot enabled；PWM_MAIN_TIM0=-4、DSHOT_BIDIR_EN=1，BDShot300配置保留。九路func均0，未配置电机功能；四路read0，无有效转速回传，不能据此宣称电调端到端验证完成。
 
 本次未改参数、未解锁、未测试电机、未重启、未检查SD卡。所有串口查询完成后已释放COM59，可以重新打开QGC。
+
+## 上电 USB 身份捕获（2026-11-03，Asia/Shanghai）
+
+用户配合拔插USB，使用serial.tools.list_ports约80ms轮询，仅枚举而不打开串口。捕获：14:09:42 USB端口消失；14:09:48 COM55，VID:PID=26AC:0011，description=Legacy FMU (COM55)，serial=0，LOCATION=1-1.2；14:09:51端口消失；14:09:53 COM59，VID:PID=1B8C:0036，serial=0，LOCATION=1-1.2。同一物理USB位置从bootloader跳转至应用。
+
+结论：当前bootloader实际仍为此前26AC:0011配置，最新r16预期3162:004B尚未在设备生效，不能仅归因于Windows显示名缓存。应用则为新1B8C:0036配置；此前QGC刷写应用成功不会自动更新0x08000000处bootloader。若需两种模式都采用MicoAir AIO参考ID，应使用ST-Link将bootloader-micoid-r16/p224_vio-v1_bootloader.bin写入0x08000000，不必因此重刷当前已确认r15应用。此次未烧录、未改参数、未主动重启。
+
+## 更新 bootloader 后再次捕获（2026-11-03，Asia/Shanghai）
+
+用户更新后再次配合拔插，USB只读枚举捕获：14:12:46端口消失；14:12:50 COM49，VID:PID=3162:004B，serial0，LOCATION=1-1.2；14:12:54端口消失；14:12:56 COM59，VID:PID=1B8C:0036，serial0，LOCATION=1-1.2。确认bootloader新USB身份已生效，并正常跳转到应用；两种模式的USB ID现均符合micoair/h743-aio参考配置。此检查未读取bootloader二进制哈希，不据枚举结果单独断言构建版本。未改设备参数、未打开串口、未主动重启或烧录。监测完成已停止。
+
+## ELRS / UART7 接收机端口参数补齐（2026-11-03）
+
+用户找不到接收机串口参数，确认接收机为ELRS、接UART7。核对当前板级default.px4board未启用DRIVERS_RC_CRSF_RC，也未启用通用rc_input，因此CRSF驱动的module.yaml不会生成RC_CRSF_PRT_CFG参数。新增CONFIG_DRIVERS_RC_CRSF_RC=y；rc.board_defaults加入param set-default RC_CRSF_PRT_CFG 103，对应TELEM3=/dev/ttyS2=物理UART7。仅设置默认值，不强行覆盖已保存参数；新固件生效后仍应检查实际参数及该口是否被其他服务占用。RC_CRSF_TEL_EN仍保留上游默认值0，本次不擅自启用接收机回传。UART7 RX接ELRS TX，UART7 TX接ELRS RX（需要双向通信时），共地；供电须符合接收机规格。
+
+仅重编应用，bootloader及USB标识均无需改动。GitHub Actions编译，不本地编译，未操作电机。源码依据src/drivers/rc/crsf_rc/{Kconfig,module.yaml}与Tools/serial/generate_config.py的TEL3 index103映射。
+
+用户补充RC_PORT_CONFIG也不存在。补入CONFIG_DRIVERS_RC_INPUT=y，生成RC_PORT_CONFIG及RC_INPUT_PROTO；默认RC_PORT_CONFIG=0，本板无RC_SERIAL_PORT回退定义，因此通用rc_input不占用串口。当前ELRS继续使用专用crsf_rc，默认RC_CRSF_PRT_CFG=103。不要将两个参数同时指向TELEM3。两类驱动同时编入仅提供配置选择，不应同时读取同一UART。
