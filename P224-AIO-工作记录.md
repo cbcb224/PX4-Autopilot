@@ -2226,3 +2226,13 @@ Bootloader Actions #16 成功：https://github.com/cbcb224/PX4-Autopilot/actions
 GitHub Actions #18 成功：https://github.com/cbcb224/PX4-Autopilot/actions/runs/41618929906 ，源码224682bd23d3a421962d93d1edb1c0d22ee34b28，Build ID p224_vio-v1_default-r18-a1-224682bd。固件目录P224-VIO-v1-固件/application-led-r18，ZIP SHA256=1582644eb55c0f8d0892d73d67760f87e02ef89a59cabc979d19c2fc1a37dae9与云端一致；bin1504892字节，SHA256=bd7b5f3360d4fb8b6454c7eade700bd66fd98318bcd7876109378993f156ee87。ELF符号检出rgbled_gpio_main、crsf_rc_main、rc_input_main；bin检出GPIO驱动状态字符串、接收机参数和本次Build ID；board_id60000、USB1B8C:0036保持，.px4解压image与bin逐字节一致，大小在应用1792KiB边界内。
 
 未本地编译、未烧录。用户可用QGC更新本目录.px4，bootloader无需更新。新固件待实测：确认rgbled_gpio status运行后，依次执行led_control on -c red / green / blue，分别观察，最后必须led_control reset释放测试覆盖并恢复commander自动颜色；命令语法已查led_control.cpp。物理颜色/引脚对应和各LED通路尚未验证，不能宣称硬件正常或问题完全解决；若命令green/blue仍不亮，需再测对应PA0/PC0电平及硬件通路。普通GPIO不支持PWM亮度调节。保留飞行前检查未通过时红色快闪，不通过改灯掩盖真实状态。
+
+## r18逐色测试反馈与运行核对（2026-11-03）
+
+用户按led_control on -c red/green/blue顺序测试，反馈分别为蓝灯常亮、红灯常亮、熄灭。按当前固件定义推导PC1低电平点亮的是蓝色、PA0低电平点亮的是红色，而PC0通路未观察到灯亮；与最初文档PC1红/PA0绿/PC0蓝不一致。此映射推导依据用户视觉观察，尚未电测GPIO或核对实际原理图，不能把PC0不亮直接判为LED损坏。
+
+只读设备确认Build URI p224_vio-v1_default-r18-a1-224682bd，rgbled_gpio运行；led_control消息红色快闪priority0。已执行led_control reset释放测试覆盖并释放COM59，未改参数或引脚定义，未重启。为避免猜测修改，暂不生成新版：等待用户核对绿灯实际MCU引脚，或在blue测试覆盖期间测PC0对GND电压（当前active-low应接近0V），并在测完后reset。PC0电平能拉低而不亮时查LED支路/阻值/极性/实际网络，不能拉低则继续查GPIO配置或物理引脚识别。
+
+## LED 型号错误结论与最终配置（2026-11-03）
+
+用户确认灯珠型号装错，并明确代码继续采用PC1=红、PA0=绿、PC0=蓝。已核对board_config.h与rgbled_gpio驱动：当前源码及r18产物本就采用该映射、共阳低电平点亮，无需交换引脚或重新编译。此前“红命令亮蓝、绿命令亮红、蓝命令熄灭”的视觉测试对应错误灯珠，不能作为修改设计映射的依据。硬件更换正确型号后，再逐色检查并led_control reset恢复自动状态；未声称已完成换件后验证。此结论取代前一条等待用户核对实际映射的待办。
