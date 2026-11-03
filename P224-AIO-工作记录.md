@@ -2016,3 +2016,105 @@ nsh>
 - input_rc 从未发布；GPS 无数据。四串口中仅 ttyS0 的 MAVLink 已启动，另外三路未接外设回环验证，不能宣布四串口硬件全部正常。
 - USB MAVLink txerr=0；rx loss统计包含多次短会话重置序列号，不把该累计值直接当 USB 物理丢包结论。
 - 检查期间仍未解锁、未修改参数、未触发输出。所有串口已关闭。SD问题按用户要求跳过，未清除相关安全检查。
+
+## 按用户要求改为 BDShot300（2026-11-03）
+
+确认未解锁后设置 PWM_MAIN_TIM0=-4，不重启、不触发输出。
+
+```text
+
+### commander status
+
+NuttShell (NSH) NuttX-12.12.0
+nsh> commander status
+INFO  [commander] Disarmed
+INFO  [commander] navigation mode: Hold
+INFO  [commander] user intended navigation mode: Hold
+INFO  [commander] in failsafe: no
+commander: cycle: 37732 events, 2757452us elapsed, 73.08us avg, min 37us max 1262us 62.684us rms
+commander: preflight check: 3995 events, 697264us elapsed, 174.53us avg, min 105us max 1218us 59.717us rms
+nsh>
+
+### param set PWM_MAIN_TIM0 -4
+param set PWM_MAIN_TIM0 -4
++ PWM_MAIN_TIM0: curr: -3 -> new: -4
+nsh>
+
+### param show PWM_MAIN_TIM0
+param show PWM_MAIN_TIM0
+Symbols: x = used, + = saved, * = unsaved
+x   PWM_MAIN_TIM0 [706,1018] : -4
+
+ 920/1537 parameters used.
+nsh>
+
+### param show DSHOT_BIDIR_EN
+param show DSHOT_BIDIR_EN
+Symbols: x = used, + = saved, * = unsaved
+x   DSHOT_BIDIR_EN [287,522] : 1
+
+ 920/1537 parameters used.
+nsh>
+
+### param status
+param status
+INFO  [parameters] summary: 920/1537 (used/total)
+INFO  [parameters] storage array: 30/1537 elements (256 bytes total)
+INFO  [parameters] storage array (custom defaults): 24/1537 elements (256 bytes total)
+INFO  [parameters] auto save: on
+INFO  [parameters] last auto save: 6.528 seconds ago
+param: export: 2 events, 3018us elapsed, 1509.00us avg, min 217us max 2801us 1827.164us rms
+param: find: 67224 events
+param: get: 2646223 events
+param: set: 31 events, 251us elapsed, 8.10us avg, min 3us max 11us 1.599us rms
+nsh>
+
+### dshot status
+dshot status
+INFO  [dshot] Outputs initialized: yes
+INFO  [dshot] Outputs used: 0xf
+INFO  [dshot] Outputs on: yes
+dshot: cycle: 1432 events, 8017us elapsed, 5.60us avg, min 4us max 666us 17.651us rms
+dshot: bdshot rpm: 1432 events
+dshot: dshot telem: 0 events
+INFO  [mixer_module] Param prefix: PWM_MAIN
+control latency: 0 events, 0us elapsed, 0.00us avg, min 0us max 0us 0.000us rms
+Channel Configuration:
+Channel 0: func:   0, value: 0, failsafe: 0, disarmed: 0, min: 109, max: 1999, center: 65535
+Channel 1: func:   0, value: 0, failsafe: 0, disarmed: 0, min: 109, max: 1999, center: 65535
+Channel 2: func:   0, value: 0, failsafe: 0, disarmed: 0, min: 109, max: 1999, center: 65535
+Channel 3: func:   0, value: 0, failsafe: 0, disarmed: 0, min: 109, max: 1999, center: 65535
+Channel 4: func:   0, value: 0, failsafe: 0, disarmed: 0, min: 109, max: 1999, center: 65535
+Channel 5: func:   0, value: 0, failsafe: 0, disarmed: 0, min: 109, max: 1999, center: 65535
+Channel 6: func:   0, value: 0, failsafe: 0, disarmed: 0, min: 109, max: 1999, center: 65535
+Channel 7: func:   0, value: 0, failsafe: 0, disarmed: 0, min: 109, max: 1999, center: 65535
+Channel 8: func:   0, value: 0, failsafe: 0, disarmed: 0, min: 109, max: 1999, center: 65535
+INFO  [arch_dshot] dshot driver stats:
+INFO  [arch_dshot] Bidirectional DShot enabled
+INFO  [arch_dshot] Timer 0, Channel 0: read 0, failed nibble 0, failed CRC 0, invalid/zero 0
+INFO  [arch_dshot] Timer 0, Channel 1: read 0, failed nibble 0, failed CRC 0, invalid/zero 0
+INFO  [arch_dshot] Timer 0, Channel 2: read 0, failed nibble 0, failed CRC 0, invalid/zero 0
+INFO  [arch_dshot] Timer 0, Channel 3: read 0, failed nibble 0, failed CRC 0, invalid/zero 0
+nsh>
+
+```
+
+## BF资料整理（2026-11-03）
+
+按用户要求新增 P224-VIO-v1-Betaflight移植资料.md，汇总硬件与实测边界，强调无DRDY、传感器坐标变换、BF独立链接布局和DMA适配。尚未选择BF版本或执行BF编译；未改动设备。
+
+## USB 名称核查（2026-11-03）
+
+Windows COM53 的 DEVPKEY_Device_BusReportedDeviceDesc 实测为 vio-v1，说明固件产品名已上报。FriendlyName 为 USB 串行设备 (COM53)，Device_Manufacturer 为 Microsoft，属于当前 Windows 通用串口驱动的设备属性。固件 CDCACM_VENDORSTR=p224、PRODUCTSTR=vio-v1；NuttX cdcacm_desc.c 用这两个字段生成字符串描述符。此次没有直接读取 USB iManufacturer 原始字符串，因此不把 Windows 的 Microsoft 字段当作固件厂商描述符实测值。未改驱动、注册表或固件。
+
+## QGC 5.1.4 升级识别核查（2026-11-03）
+
+用户确认应用和配套 bootloader 均已烧录。官方 v5.1.4 src/Comms/USBBoardInfo.json 中 1209:0001 无匹配，vio-v1 BL 也无描述备用匹配，自动识别缺口已确认。该版本 PX4FirmwareUpgradeThread.cc 支持手选未知端口：正常应用端口首次看到后等待移除并重新出现，再握手 bootloader；选择端口不会自动把正在运行的应用切为 bootloader。因此“手选后取消”仍需对照插拔步骤/错误日志，不能仅由白名单断言。未修改 USB ID/名称，未烧录或重启。来源 https://github.com/mavlink/qgroundcontrol/tree/v5.1.4/src/Comms 及 src/Vehicle/VehicleSetup/PX4FirmwareUpgradeThread.cc。
+
+## QGC 5.1.4 端口选择消失根因
+
+用户澄清点击 COM53 即丢失选择，尚未进入刷写阶段。已检查官方 v5.1.4 FirmwareUpgrade.qml：onAvailablePortsChanged 调用 _refreshSelection；手选端口若不是 Pixhawk/SiK 则 currentIsRecognized=false，进入 _preselectIndex；没有已知设备时返回 -1，清空 ComboBox 选择。当前 USB/名称不匹配识别规则，因此该逻辑与现象一致。此前建议选中后插拔不解决此阶段问题。正确的 QGC 端修复应在所选 systemLocation 仍存在时保留选择，不要求 recognized；识别表加入 1209:0001 也可用于本开发环境，但该 VID/PID 是通用测试 ID，不能作为通用发行版永久独占映射。来源 https://github.com/mavlink/qgroundcontrol/blob/v5.1.4/src/Vehicle/VehicleSetup/FirmwareUpgrade.qml。未改本机 QGC 或 USB 标识。
+
+## 按用户要求试验 USB 名称（2026-11-03）
+
+用户指定保留板卡 ID，并将厂商/产品名改为 microair h743 aio。按字面拆分厂商 microair、产品 h743 aio（不是 MicoAir 拼写），应用与 bootloader 两份 CDCACM 描述符均修改，USBMFGSTRING 同步。board_id/BOARD_TYPE=60000、VID:PID=1209:0001、引脚及 Flash 布局不变。bootloader 产品字符串此次亦按用户指定不加 BL 后缀；该名称不保证匹配 QGC 5.1.4 规则，仅作为用户要求的试验，尚未烧录验证。通过 GitHub Actions 编译两份固件，不在本机编译。

@@ -76,7 +76,7 @@
 #define BOARD_FLASH_SECTORS            (14) /* Last erasable sector; preserve parameter sector 15. */
 #define BOARD_FLASH_SIZE               (2048 * 1024)
 #define APP_RESERVATION_SIZE           (128 * 1024)
-#define USBMFGSTRING                   "p224"
+#define USBMFGSTRING                   "microair"
 
 #define OSC_FREQ                       16
 
