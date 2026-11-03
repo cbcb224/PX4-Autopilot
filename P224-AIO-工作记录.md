@@ -2118,3 +2118,16 @@ Windows COM53 的 DEVPKEY_Device_BusReportedDeviceDesc 实测为 vio-v1，说明
 ## 按用户要求试验 USB 名称（2026-11-03）
 
 用户指定保留板卡 ID，并将厂商/产品名改为 microair h743 aio。按字面拆分厂商 microair、产品 h743 aio（不是 MicoAir 拼写），应用与 bootloader 两份 CDCACM 描述符均修改，USBMFGSTRING 同步。board_id/BOARD_TYPE=60000、VID:PID=1209:0001、引脚及 Flash 布局不变。bootloader 产品字符串此次亦按用户指定不加 BL 后缀；该名称不保证匹配 QGC 5.1.4 规则，仅作为用户要求的试验，尚未烧录验证。通过 GitHub Actions 编译两份固件，不在本机编译。
+
+### 本次名称试验编译与交付
+
+源代码提交：608f85146098a455303a982fcbd1f2b10d89a0ab。
+
+- 应用：GitHub Actions #11 成功，https://github.com/cbcb224/PX4-Autopilot/actions/runs/41583608029 。本地目录 P224-VIO-v1-固件/application-microair-r11，Build ID p224_vio-v1_default-r11-a1-608f8514。
+- Bootloader：GitHub Actions #12 成功，https://github.com/cbcb224/PX4-Autopilot/actions/runs/41583611039 。本地目录 P224-VIO-v1-固件/bootloader-microair-r12，Build ID p224_vio-v1_bootloader-r12-a1-608f8514。
+- 两个下载 ZIP 的 SHA256 均与 GitHub artifact digest 一致；应用 ZIP 为 1f108de44804693610e07907f2d9ea588e3772c46ffdd82325620d4327a698ff，bootloader ZIP 为 f0131524c4959f5e5e595457a455f66f9f0d8ae1923abc70eef2a500c25b0c68。
+- 两份 .px4 解压 image 均与配套 .bin 逐字节相同，board_id 均为 60000；二进制中均检出 microair、h743 aio。应用中检出本次 Build ID。
+- 应用 .bin 大小 1482920 字节，SHA256 5b8d2868a900b956364d11a6882551b01a98f4ecb44c5c736df6a777be185ff1，ST-Link 起始地址 0x08020000。
+- Bootloader .bin 大小 42392 字节，SHA256 3892a986956882e6686cd64e9f5b605433100aeb15ed48801b49be915ec4356b，ST-Link 起始地址 0x08000000。
+
+本机仅编辑、静态检查、下载和校验，没有本地编译，没有自动烧录、重启或修改设备参数。要让应用与升级模式都显示此次名称，需要更新两份；QGC 5.1.4 的识别效果仍待用户烧录、拔插后实测，编译通过不代表已解决其端口选择问题。
