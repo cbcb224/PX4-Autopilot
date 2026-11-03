@@ -2220,3 +2220,9 @@ Bootloader Actions #16 成功：https://github.com/cbcb224/PX4-Autopilot/actions
 ### GPIO RGB 状态驱动补齐
 
 用户确认红灯闪烁。现有蓝灯legacy输出与用户观察颜色不符，不能以此确认物理颜色映射或硬件损坏。新增可选src/drivers/lights/rgbled_gpio驱动：按GPIO_nLED_RED/GREEN/BLUE低有效直接控制一个RGB灯，通过上游LedController处理led_control颜色、闪烁及优先级，不用PWM、不占定时器或DMA。板级启用驱动，rc.board_extras启动；删除BOARD_HAS_CONTROL_STATUS_LEDS/BOARD_OVERLOAD_LED/BOARD_ARMED_STATE_LED，以免commander legacy逻辑与RGB驱动抢同组GPIO。保留led.c初始化及启动阶段故障指示。普通GPIO只支持亮灭，不提供渐变亮度。通过led_control on -c red/green/blue测试并以led_control reset释放高优先级覆盖（具体reset命令以源码确认）。板卡/USB/电机/接收机/电池参数不变。仅应用云端编译；尚未烧录，尚未验证物理颜色。测试只改LED，不能为测试灯色而解锁飞控。
+
+### GPIO RGB 编译与制品检查
+
+GitHub Actions #18 成功：https://github.com/cbcb224/PX4-Autopilot/actions/runs/41618929906 ，源码224682bd23d3a421962d93d1edb1c0d22ee34b28，Build ID p224_vio-v1_default-r18-a1-224682bd。固件目录P224-VIO-v1-固件/application-led-r18，ZIP SHA256=1582644eb55c0f8d0892d73d67760f87e02ef89a59cabc979d19c2fc1a37dae9与云端一致；bin1504892字节，SHA256=bd7b5f3360d4fb8b6454c7eade700bd66fd98318bcd7876109378993f156ee87。ELF符号检出rgbled_gpio_main、crsf_rc_main、rc_input_main；bin检出GPIO驱动状态字符串、接收机参数和本次Build ID；board_id60000、USB1B8C:0036保持，.px4解压image与bin逐字节一致，大小在应用1792KiB边界内。
+
+未本地编译、未烧录。用户可用QGC更新本目录.px4，bootloader无需更新。新固件待实测：确认rgbled_gpio status运行后，依次执行led_control on -c red / green / blue，分别观察，最后必须led_control reset释放测试覆盖并恢复commander自动颜色；命令语法已查led_control.cpp。物理颜色/引脚对应和各LED通路尚未验证，不能宣称硬件正常或问题完全解决；若命令green/blue仍不亮，需再测对应PA0/PC0电平及硬件通路。普通GPIO不支持PWM亮度调节。保留飞行前检查未通过时红色快闪，不通过改灯掩盖真实状态。
