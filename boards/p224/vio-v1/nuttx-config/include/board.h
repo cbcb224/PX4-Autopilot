@@ -288,22 +288,24 @@
 
 /* Init 400kHz, freq = PLL1Q/(2*div)  div =  PLL1Q/(2*freq) */
 
-#define STM32_SDMMC_INIT_CLKDIV     (250 << STM32_SDMMC_CLKCR_CLKDIV_SHIFT)
+#define STM32_SDMMC_INIT_CLKDIV     (300 << STM32_SDMMC_CLKCR_CLKDIV_SHIFT)
 
-/* SD diagnostic: PLL1Q 200 MHz / (2 * 20) = 5 MHz; bus width is selected in defconfig. */
+/* 25 MHz Max for now, 25 mHZ = PLL1Q/(2*div), div =  PLL1Q/(2*freq)
+ * div = 4.8 = 240 / 50, So round up to 5 for default speed 24 MB/s
+ */
 
 #if defined(CONFIG_STM32H7_SDMMC_XDMA) || defined(CONFIG_STM32H7_SDMMC_IDMA)
-#  define STM32_SDMMC_MMCXFR_CLKDIV   (20 << STM32_SDMMC_CLKCR_CLKDIV_SHIFT)
+#  define STM32_SDMMC_MMCXFR_CLKDIV   (5 << STM32_SDMMC_CLKCR_CLKDIV_SHIFT)
 #else
 #  define STM32_SDMMC_MMCXFR_CLKDIV   (100 << STM32_SDMMC_CLKCR_CLKDIV_SHIFT)
 #endif
 #if defined(CONFIG_STM32H7_SDMMC_XDMA) || defined(CONFIG_STM32H7_SDMMC_IDMA)
-#  define STM32_SDMMC_SDXFR_CLKDIV    (20 << STM32_SDMMC_CLKCR_CLKDIV_SHIFT)
+#  define STM32_SDMMC_SDXFR_CLKDIV    (5 << STM32_SDMMC_CLKCR_CLKDIV_SHIFT)
 #else
 #  define STM32_SDMMC_SDXFR_CLKDIV    (100 << STM32_SDMMC_CLKCR_CLKDIV_SHIFT)
 #endif
 
-#define STM32_SDMMC_CLKCR_EDGE      0
+#define STM32_SDMMC_CLKCR_EDGE      STM32_SDMMC_CLKCR_NEGEDGE
 
 /* LED definitions ******************************************************************/
 /* P224 VIO v1 pin mux. HSE 16 MHz; PLL1 input 4 MHz, CPU 400 MHz. */

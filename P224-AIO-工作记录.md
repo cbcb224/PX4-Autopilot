@@ -2278,3 +2278,29 @@ logger Running但Not logging，dataman worker未运行，启动缓冲已被datam
 Actions #20成功：https://github.com/cbcb224/PX4-Autopilot/actions/runs/41659995977 ，源码aada08a4c1ec6b37b8d801a0b2a3d4d4a5ef99bc，Build URI p224_vio-v1_default-r20-a1-aada08a4。目录P224-VIO-v1-固件/application-sd5mhz-1bit-r20；ZIP SHA256=fafa5de8a61677d1321218ae76ac6d6dee5459b816f5259a14f8696dcfedbedf与GitHub匹配，bin1502052字节，SHA256=80590be9b046c820e252450f2aa9f5a46841b51f6be6adc3186c4e491a82ae8a。
 
 已验证board_id60000、.px4解压image与bin一致、Build URI、应用大小边界、保留RGB和接收机驱动、ELF不含cmd_mkfatfs。单线选项依据固定源码配置及驱动语义核对，尚未上板验证。未本地编译、未自动烧录/重启或写卡。QGC仅更新应用.px4，bootloader不更新，继续使用同一张卡、断电插卡上电后检查；普通启动仍可能尝试日志/备份写入，非只读挂载，重要数据应保留备份。
+
+## r20 单线首次实测：用户已换卡（2026-11-03）
+
+COM59确认Build URI p224_vio-v1_default-r20-a1-aada08a4。卡挂为vfat，df块4096、总块122636、已用44，可用122592；/dev/mmcsd0长度503316480字节，约503MB。根目录未列出条目，dataman及parameters_backup.bson stat均I/O error；logger Not logging，启动创建log/sess100失败(errno5)；dataman累计7reads/0writes，启动显示文件128528字节，不能据此宣称当前文件访问正常。未写卡/格式化/主动重启或改参数，串口关闭。
+
+注意：本次容量与此前64GB不同，用户明确确认已换卡。因此本次仅能说明新小容量卡在5MHz单线下仍有文件访问错误，不能把挂载恢复归因单线、也不能直接对比r19原64GB的挂载超时。已请用户保持r20不变、断电换回原64GB后再测，以控制卡这一变量。现阶段不能确定DAT1-DAT3虚焊或排除公共线路/供电/驱动。
+
+## r20 换回原64GB卡的单线实测（2026-11-03）
+
+用户按要求换回原卡后回复好了。只读COM59确认r20-a1-aada08a4；vfat挂载存在，df块32768、总1948515、已用1235、可用1947280，与原64GB卡一致。根目录仍未列条目；dataman与parameters_backup.bson stat均I/O error。logger Not logging，启动mkdir /fs/microsd/log/sess100失败errno5。dataman累计5reads/0writes，启动文件128528字节，不能替代当前FAT文件访问验证。
+
+与r19同卡四线5MHz未挂载/只读mount超时相比，r20同卡单线5MHz本次挂载成功，但文件操作仍失败；与r18四线20MHz则同为挂载成功后I/O错误。只做了单次启动对照，挂载阶段不同不能独立证明是DAT1-DAT3故障；单线依然失败说明问题尚未解决，也不能把根因全部归于DAT1-DAT3。后续需细化块读取CRC/timeout/DMA/cache和FAT层错误来源，并核对公共CLK/CMD/DAT0及电源、卡座焊接。未主动写卡、格式化、重启或改参数；诊断串口关闭。硬件根因未确认，不盲目补焊。
+
+## 新格式化512MB FAT32卡复测（2026-11-04）
+
+用户换入刚格式化512MB FAT32卡要求再测。COM59确认仍为r20-a1-aada08a4，5MHz单线。FAT挂载成功；df块4096、总121856、已用2、可用121854；块设备503316480字节。根目录此次可列System Volume Information/、dataman、parameters_backup.bson，后两文件均0字节且stat成功，说明与旧卡相比目录访问改善，但不代表完整数据读写成功。
+
+logger Not logging；dataman worker未运行。启动日志明确：Could not seek data manager file、dataman start failed；logger mkdir根目录失败errno22、随后会话目录失败errno20；tinybson file write error errno22 Invalid argument，参数备份导出失败。两个0字节文件由启动过程已有尝试产生，检测工具仅查询，没有创建或主动写文件。未格式化、删除、重启或改参数，串口已释放。
+
+本次可将问题具体化为文件分配/seek/write链路异常：目录项存在但文件未扩展。已核对当前NuttX源码，FAT层和MMC命令层均存在EINVAL来源，尚无内部错误位置/CRC/timeout记录，不得仅凭errno22断定DMA/cache或PCB虚焊。下一步应在块写入、FAT簇分配及seek失败处增加有限诊断，区分参数/簇链异常与底层传输错误；没有以持续格式化或盲目补焊代替定位。
+
+## 按用户要求恢复官方 SD 实现并重编（2026-11-04）
+
+用户要求将内存卡相关修改全部恢复官方代码并重编。官方v1.17.0没有P224板，以原始参考px4/fmu-v6c为依据：完整复制其board.h SDMMC参数块（初始化分频300、IDMA传输分频5、非IDMA分频100、CLKCR_EDGE=NEG）、移除单线强制，恢复NSH mkfatfs命令。特别发现原P224配置CLKCR_EDGE=0与官方NEG不同，本次按用户要求也恢复，不只撤销r19/r20测试。P224实际PLL1Q为200MHz，因此官方相同分频在本板对应初始化约333kHz、传输约20MHz，不能误称24MHz。负边沿改变是待实测变量，尚不宣称根因已经确认。
+
+只保留实际硬件必需的SDMMC1/PC12 CK、PD2 CMD、PC8-11 DAT0-3及无卡检测适配，不更换为FMU-v6c的SDMMC2。sdio.c已与官方FMU-v6c文件逐字比较一致；rcS与底层NuttX子模块对官方v1.17.0无修改，因此无需覆盖或破坏子模块。其余FAT/MMCSD配置核对一致。USB、板卡ID、IMU、RC、LED、电机输出等不改。恢复官方启动行为也恢复挂载失败自动格式化的可能，交付时须明确：首次启动先用无重要数据测试卡或备份卡内数据。未本地编译、未自动烧录/重启或写卡。
