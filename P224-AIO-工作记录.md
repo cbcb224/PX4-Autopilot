@@ -2304,3 +2304,15 @@ logger Not logging；dataman worker未运行。启动日志明确：Could not se
 用户要求将内存卡相关修改全部恢复官方代码并重编。官方v1.17.0没有P224板，以原始参考px4/fmu-v6c为依据：完整复制其board.h SDMMC参数块（初始化分频300、IDMA传输分频5、非IDMA分频100、CLKCR_EDGE=NEG）、移除单线强制，恢复NSH mkfatfs命令。特别发现原P224配置CLKCR_EDGE=0与官方NEG不同，本次按用户要求也恢复，不只撤销r19/r20测试。P224实际PLL1Q为200MHz，因此官方相同分频在本板对应初始化约333kHz、传输约20MHz，不能误称24MHz。负边沿改变是待实测变量，尚不宣称根因已经确认。
 
 只保留实际硬件必需的SDMMC1/PC12 CK、PD2 CMD、PC8-11 DAT0-3及无卡检测适配，不更换为FMU-v6c的SDMMC2。sdio.c已与官方FMU-v6c文件逐字比较一致；rcS与底层NuttX子模块对官方v1.17.0无修改，因此无需覆盖或破坏子模块。其余FAT/MMCSD配置核对一致。USB、板卡ID、IMU、RC、LED、电机输出等不改。恢复官方启动行为也恢复挂载失败自动格式化的可能，交付时须明确：首次启动先用无重要数据测试卡或备份卡内数据。未本地编译、未自动烧录/重启或写卡。
+
+### 官方 SD 配置恢复：云端编译暂受阻
+
+恢复提交fed807e3c8617d04c1282a7ec612bd02353390dd已推送。静态检查通过，SDMMC完整参数块及sdio.c与官方参考逐字匹配。两次POST workflow_dispatch均被GitHub拒绝HTTP422：Actions has been disabled for this repository。只读GET actions/permissions显示enabled=true、allowed_actions=all，firmware-build.yml state=active，仓库archived=false/disabled=false/public。故当前不能通过修改YAML或盲目enable工作流解决，且没有证据把原因认定账单锁定。已请求用户提供Actions页面停用限制提示以定位。没有成功启动本次固件编译，没有新固件交付；未在本地编译或改设备。首次触发脚本未设Stop导致错误后仍打印Dispatched，该输出不作为成功证据；后续用Stop重试确认失败。
+
+### fork工作流限制解除及恢复版交付（2026-11-04）
+
+用户提供Actions页面提示：Workflows on this fork have been disabled（GitHub为避免fork继承无用工作流消耗而停用）。通过PUT firmware-build.yml/enable重新启用手动固件工作流后，dispatch被接受，无须变更账单或allowed_actions权限。r21 run41777178349 attempt1在子模块下载因Could not resolve host github.com失败，未进入编译；重跑attempt2源码下载及编译成功，未改源码绕过故障。
+
+成功构建：https://github.com/cbcb224/PX4-Autopilot/actions/runs/41777178349/attempts/2 ，源码fed807e3c8617d04c1282a7ec612bd02353390dd，Build URI p224_vio-v1_default-r21-a2-fed807e3。目录P224-VIO-v1-固件/application-sd-official-r21-a2；ZIP SHA256=966d0e319d5d04d2c83e88dd1b7e78ddfc3161b44804d0f6327e605f9e28b917与GitHub digest匹配；bin1504892字节，SHA256=92c62419c8b1ce4e7104781b8c6720aa9bf2146f0933ae4e9621bb6758e4ecd6。
+
+已检查board_id60000、.px4解压image与bin一致、正确r21-a2 Build URI、大小在1792KiB内、保留RGB及两类RC驱动、ELF cmd_mkfatfs符号已恢复。官方SDMMC参数块与参考FMU-v6c逐字一致：INIT分频300、传输分频5、NEG边沿、默认四线；仅保留本板SDMMC1等必要硬件映射。bootloader不需更新。没有本地编译、自动烧录/重启或操作SD卡。恢复官方行为后存在挂载失败自动格式化可能，交付要求先备份或使用无重要数据测试卡；尚未实测恢复版SD访问，不能宣称问题已解决。
