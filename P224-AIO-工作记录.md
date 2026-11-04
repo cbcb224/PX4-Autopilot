@@ -2316,3 +2316,11 @@ logger Not logging；dataman worker未运行。启动日志明确：Could not se
 成功构建：https://github.com/cbcb224/PX4-Autopilot/actions/runs/41777178349/attempts/2 ，源码fed807e3c8617d04c1282a7ec612bd02353390dd，Build URI p224_vio-v1_default-r21-a2-fed807e3。目录P224-VIO-v1-固件/application-sd-official-r21-a2；ZIP SHA256=966d0e319d5d04d2c83e88dd1b7e78ddfc3161b44804d0f6327e605f9e28b917与GitHub digest匹配；bin1504892字节，SHA256=92c62419c8b1ce4e7104781b8c6720aa9bf2146f0933ae4e9621bb6758e4ecd6。
 
 已检查board_id60000、.px4解压image与bin一致、正确r21-a2 Build URI、大小在1792KiB内、保留RGB及两类RC驱动、ELF cmd_mkfatfs符号已恢复。官方SDMMC参数块与参考FMU-v6c逐字一致：INIT分频300、传输分频5、NEG边沿、默认四线；仅保留本板SDMMC1等必要硬件映射。bootloader不需更新。没有本地编译、自动烧录/重启或操作SD卡。恢复官方行为后存在挂载失败自动格式化可能，交付要求先备份或使用无重要数据测试卡；尚未实测恢复版SD访问，不能宣称问题已解决。
+
+## r21 官方SD配置恢复后的成功实测（2026-11-04）
+
+用户反馈似乎正常并要求测试。COM59确认p224_vio-v1_default-r21-a2-fed807e3。当前约512MB卡挂载vfat，df块4096、总121856；根目录可列出，dataman=128528字节、parameters_backup.bson=1596字节，目录及文件stat正常，不再为0字节。dataman worker运行，7reads/0writes。此次启动dmesg未见此前SD的I/O、EINVAL、mkdir或dataman失败；与板级存储无关的mtd_caldata探测、DPS310首地址探测、禁用通用RC启动等原有提示仍有，不据此宣称所有系统告警消失。
+
+初始logger Not logging。为实际验证写入，确认Disarmed后执行logger on（仅记录覆盖，不解锁），短时状态显示日志/fs/microsd/log/2026-11-04/05_48_19.ulg从0.36MiB增长至0.76MiB，报告平均约113-127KiB/s。首次status记录2次dropout、最大0.300s，下一次status新增0次；不能据此宣称日志已零丢段或长期性能合格。执行logger off后确认Not logging；最终文件stat为1401041字节，确认非空日志落盘，保留该测试日志。随后commander再次确认Disarmed，Hold、failsafe=no。串口释放，未改参数、未格式化、未重启、未触碰电机或用户文件。
+
+结论：在当前512MB卡上，r21恢复官方SD配置后基本目录读取、dataman初始化/读取、参数备份文件及持续日志写入已恢复。对比证据优先支持先前板级SD时钟配置不合适，特别是EDGE由0改官方NEG值得重点考虑；同时初始化分频也恢复300，且未进行单变量回退，因此尚不能单独证明边沿是唯一根因。当前证据不支持直接判定PCB虚焊，不需要为此盲目补焊；64GB卡及多次冷启动/长期记录仍未在r21验证。
