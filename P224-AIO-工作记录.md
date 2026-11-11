@@ -2331,3 +2331,12 @@ logger Not logging；dataman worker未运行。启动日志明确：Could not se
 用户要求将控制台改为PD8/PD9 USART3。已核对当前NuttX stm32h7x3xx_pinmap_legacy.h：GPIO_USART3_TX_3=PD8、GPIO_USART3_RX_3=PD9（AF7）；本板代码未见这两个引脚被其他外设占用。在线ST数据手册下载失败，未据此验证封装焊球或PCB实际引出连接，需以用户PCB为准。按既有57600、8N1保留波特率，将应用CONFIG_USART2_SERIAL_CONSOLE切换为CONFIG_USART3_SERIAL_CONSOLE，新增USART3及其PD8/PD9宏，未改NuttX底层驱动。
 
 保留SERIAL_DISABLE_REORDERING，依据stm32_serial.c按外设编号依次注册：USART2=ttyS0、USART3控制台=ttyS1、UART4=ttyS2、UART7=ttyS3、UART8=ttyS4。同步板级TEL1/2/3/4映射为ttyS0/2/3/4，使现有RC_CRSF_PRT_CFG=103等逻辑端口参数不变，UART7仍用于ELRS；更正启动脚本注释。USART2不再输出NSH控制台，仍可用于TELEM1/MAVLink。USB控制台、SD设置和bootloader均不改，本次只需更新应用。尚待静态检查和GitHub Actions编译/产物验证，未自动刷写或修改飞控参数。
+
+
+### USART3 控制台 r22 云端构建与产物验证
+
+2026-11-11，源码de7890842fdf80aff4457df9ebdb3f421372a591通过既有静态检查及git diff --check，仅Windows编辑，GitHub Actions run43019376294（r22 attempt1）成功。Build URI=p224_vio-v1_default-r22-a1-de789084。产物已下载至P224-VIO-v1-固件/application-usart3-console-r22-a1，应用p224_vio-v1_default.px4供QGC升级；bootloader不需更新。Actions：https://github.com/cbcb224/PX4-Autopilot/actions/runs/43019376294 。
+
+artifact13853978504，ZIP SHA256=414a7aaa8005036eb831564feca38f668ad4416ad53107ce2d7143d1ab56c71b，与API digest一致。bin1505060字节，SHA256=c64914f30e12d842a10bcb8de74b003577da92ae189c776fe5c4038c7269f494；.px4 board_id=60000，解压镜像与bin逐字一致，小于1792KiB，内嵌Build URI正确；ELF保留RGB/CRSF/rc_input/mkfatfs等符号。通过ELF DWARF解析实际驱动初始化数据：g_usart3priv isconsole=1、baud=57600、TX_GPIO=0x97c38(PD8 AF7)、RX_GPIO=0x97c39(PD9 AF7)；g_usart2priv isconsole=0，确认控制台切换实际进入产物。
+
+未自动烧录、重启或修改实机参数，串口电气收发尚待更新应用后验证。接线：飞控PD8(TX)接USB-TTL RX、PD9(RX)接USB-TTL TX、GND共地，3.3V TTL，57600 8N1无流控。代码未见引脚冲突不代表已验证PCB连线。TEL物理映射保持：USART2 ttyS0=TELEM1，UART4 ttyS2=TELEM2，UART7 ttyS3=TELEM3，UART8 ttyS4=TELEM4；USART3 ttyS1仅控制台。
