@@ -5,7 +5,7 @@ param set-default BAT1_A_PER_V 20.0
 param set-default DSHOT_BIDIR_EN 1
 param set-default PWM_MAIN_TIM0 -4
 # Other timer groups remain PWM; functions/airframe must be selected in QGC.
-# ELRS/CRSF receiver on physical UART7 (TELEM3 / ttyS2).
+# ELRS/CRSF receiver on physical UART7 (TELEM3 / ttyS3).
 param set-default RC_CRSF_PRT_CFG 103
 # No separate RC input port is used alongside the dedicated CRSF driver.
 param set-default RC_PORT_CONFIG 0

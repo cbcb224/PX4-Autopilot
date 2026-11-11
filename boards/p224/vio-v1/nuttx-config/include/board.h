@@ -328,6 +328,8 @@
 
 #define GPIO_USART2_TX GPIO_USART2_TX_2 /* PD5 */
 #define GPIO_USART2_RX GPIO_USART2_RX_2 /* PD6 */
+#define GPIO_USART3_TX GPIO_USART3_TX_3 /* PD8: dedicated NSH console */
+#define GPIO_USART3_RX GPIO_USART3_RX_3 /* PD9: dedicated NSH console */
 #define GPIO_UART4_TX GPIO_UART4_TX_5 /* PD1 */
 #define GPIO_UART4_RX GPIO_UART4_RX_5 /* PD0 */
 #define GPIO_UART7_TX GPIO_UART7_TX_1 /* PA15 */

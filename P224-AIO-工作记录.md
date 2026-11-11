@@ -2324,3 +2324,10 @@ logger Not logging；dataman worker未运行。启动日志明确：Could not se
 初始logger Not logging。为实际验证写入，确认Disarmed后执行logger on（仅记录覆盖，不解锁），短时状态显示日志/fs/microsd/log/2026-11-04/05_48_19.ulg从0.36MiB增长至0.76MiB，报告平均约113-127KiB/s。首次status记录2次dropout、最大0.300s，下一次status新增0次；不能据此宣称日志已零丢段或长期性能合格。执行logger off后确认Not logging；最终文件stat为1401041字节，确认非空日志落盘，保留该测试日志。随后commander再次确认Disarmed，Hold、failsafe=no。串口释放，未改参数、未格式化、未重启、未触碰电机或用户文件。
 
 结论：在当前512MB卡上，r21恢复官方SD配置后基本目录读取、dataman初始化/读取、参数备份文件及持续日志写入已恢复。对比证据优先支持先前板级SD时钟配置不合适，特别是EDGE由0改官方NEG值得重点考虑；同时初始化分频也恢复300，且未进行单变量回退，因此尚不能单独证明边沿是唯一根因。当前证据不支持直接判定PCB虚焊，不需要为此盲目补焊；64GB卡及多次冷启动/长期记录仍未在r21验证。
+
+
+## USART3 独立 NuttX 控制台（2026-11-11）
+
+用户要求将控制台改为PD8/PD9 USART3。已核对当前NuttX stm32h7x3xx_pinmap_legacy.h：GPIO_USART3_TX_3=PD8、GPIO_USART3_RX_3=PD9（AF7）；本板代码未见这两个引脚被其他外设占用。在线ST数据手册下载失败，未据此验证封装焊球或PCB实际引出连接，需以用户PCB为准。按既有57600、8N1保留波特率，将应用CONFIG_USART2_SERIAL_CONSOLE切换为CONFIG_USART3_SERIAL_CONSOLE，新增USART3及其PD8/PD9宏，未改NuttX底层驱动。
+
+保留SERIAL_DISABLE_REORDERING，依据stm32_serial.c按外设编号依次注册：USART2=ttyS0、USART3控制台=ttyS1、UART4=ttyS2、UART7=ttyS3、UART8=ttyS4。同步板级TEL1/2/3/4映射为ttyS0/2/3/4，使现有RC_CRSF_PRT_CFG=103等逻辑端口参数不变，UART7仍用于ELRS；更正启动脚本注释。USART2不再输出NSH控制台，仍可用于TELEM1/MAVLink。USB控制台、SD设置和bootloader均不改，本次只需更新应用。尚待静态检查和GitHub Actions编译/产物验证，未自动刷写或修改飞控参数。
